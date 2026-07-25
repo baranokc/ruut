@@ -1,0 +1,6 @@
+@ruut.api_HostAddress = http://localhost:5008
+
+GET {{ruut.api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

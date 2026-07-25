@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="ruut.api/ruut.api.csproj" />
+  <Project Path="ruut.application/ruut.application.csproj" />
+  <Project Path="ruut.domain/ruut.domain.csproj" />
+  <Project Path="ruut.infrastructure/ruut.infrastructure.csproj" />
+</Solution>
