@@ -10,5 +10,6 @@ public class RefreshToken : BaseEntity
     public string Token { get; set; } = string.Empty;
     public DateTime ExpiresAt { get; set; }
     public bool IsRevoked { get; set; }
+    public bool IsActive { get; set; }
     public bool IsExpired => DateTime.UtcNow >= ExpiresAt;
 }
