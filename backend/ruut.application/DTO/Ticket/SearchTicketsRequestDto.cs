@@ -1,12 +1,13 @@
 using ruut.domain.Enums;
 
-namespace ruut.application.DTOs.Tickets;
+namespace ruut.application.DTO.Tickets;
 
 public record SearchTicketsRequestDto(
     string DepartureCity,
     string DestinationCity,
     DateTime Date,
-    VehicleType? Type, 
-    decimal? MaxPrice, 
-    string? SortBy     
+    int PassengerCount = 1,
+    VehicleType? Type = null,
+    decimal? MaxPrice = null,
+    string? SortBy = null
 );

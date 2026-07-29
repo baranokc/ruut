@@ -1,6 +1,6 @@
 using ruut.domain.Enums;
 
-namespace ruut.application.DTOs.Tickets;
+namespace ruut.application.DTO.Tickets;
 
 public record TicketResponseDto(
     Guid TicketId,
