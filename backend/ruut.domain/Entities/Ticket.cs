@@ -16,6 +16,7 @@ public class Ticket : BaseEntity
     public string Currency { get; set; } = "TRY";
     public VehicleType VehicleType { get; set; }
     public string ProviderUrl { get; set; } = string.Empty;
+    public int AvailableSeats { get; set; }
 
     public ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
 
