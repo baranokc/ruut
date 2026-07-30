@@ -14,6 +14,8 @@ public class AppDbContext : DbContext
     public DbSet<Ticket> Tickets => Set<Ticket>();
     public DbSet<Favorite> Favorites => Set<Favorite>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<Booking> Bookings => Set<Booking>();
+    public DbSet<Passenger> Passengers => Set<Passenger>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
