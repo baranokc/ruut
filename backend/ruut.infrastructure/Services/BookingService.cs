@@ -44,7 +44,7 @@ public class BookingService : IBookingService
             UserId = userId,
             TicketId = ticket.Id,
             TotalAmount = ticket.Price * passengerCount,
-            Status = BookingStatus.Confirmed,
+            Status = BookingStatus.Pending,
             Passengers = request.Passengers.Select(p => new Passenger
             {
                 Name = p.Name,
