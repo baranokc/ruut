@@ -16,6 +16,7 @@ public class AppDbContext : DbContext
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<Booking> Bookings => Set<Booking>();
     public DbSet<Passenger> Passengers => Set<Passenger>();
+    public DbSet<SavedPassenger> SavedPassengers => Set<SavedPassenger>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
