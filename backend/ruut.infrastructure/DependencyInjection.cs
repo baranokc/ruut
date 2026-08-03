@@ -25,6 +25,7 @@ public static class DependencyInjection
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ITicketService, TicketService>();
         services.AddScoped<ITripService, TripService>();
+        services.AddScoped<IProfileService, ProfileService>();
         var jwtOptions = configuration.GetSection("Jwt").Get<JwtOptions>();
         if (jwtOptions != null)
         {
