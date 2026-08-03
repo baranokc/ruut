@@ -10,6 +10,9 @@ public class Passenger : BaseEntity
     public string LastName { get; set; } = string.Empty;
     public string IdentityNumber { get; set; } = string.Empty;
     public int SeatNumber { get; set; }
+    public string? Email { get; set; }
+    public string? PhoneNumber { get; set; }
+    public string? Gender { get; set; }
 
     public Booking Booking { get; set; } = null!;
 }

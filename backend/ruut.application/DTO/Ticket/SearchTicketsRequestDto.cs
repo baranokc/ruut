@@ -7,7 +7,7 @@ public record SearchTicketsRequestDto(
     string DestinationCity,
     DateTime Date,
     int PassengerCount = 1,
-    VehicleType? Type = null,
+    VehicleType? VehicleType = null,
     decimal? MaxPrice = null,
     string? SortBy = null
 );

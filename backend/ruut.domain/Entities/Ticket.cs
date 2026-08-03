@@ -12,6 +12,8 @@ public class Ticket : BaseEntity
 
     public DateTime DepartureTime { get; set; }
     public DateTime ArrivalTime { get; set; }
+    public string DepartureCode { get; set; } = string.Empty;
+    public string DestinationCode { get; set; } = string.Empty;
     public decimal Price { get; set; }
     public string Currency { get; set; } = "TRY";
     public VehicleType VehicleType { get; set; }

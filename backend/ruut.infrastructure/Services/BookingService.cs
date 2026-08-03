@@ -46,11 +46,14 @@ public class BookingService : IBookingService
             TotalAmount = ticket.Price * passengerCount,
             Status = BookingStatus.Pending,
             Passengers = request.Passengers.Select(p => new Passenger
-            {
-                Name = p.Name,
-                LastName = p.LastName,
-                IdentityNumber = p.IdentityNumber,
-                SeatNumber = p.SeatNumber
+        {
+            Name = p.Name,
+            LastName = p.LastName,
+            IdentityNumber = p.IdentityNumber,
+            SeatNumber = p.SeatNumber,
+            Email = p.Email,
+            PhoneNumber = p.PhoneNumber,
+            Gender = p.Gender
             }).ToList()
         };
         ticket.AvailableSeats -= passengerCount;

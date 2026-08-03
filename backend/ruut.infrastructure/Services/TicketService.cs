@@ -14,6 +14,7 @@ public class TicketService : ITicketService
     {
         _context = context;
     }
+
     public async Task<List<TicketResponseDto>> SearchTicketAsync(SearchTicketsRequestDto request, CancellationToken cancellationToken = default)
     {
         var query = _context.Tickets
@@ -21,10 +22,12 @@ public class TicketService : ITicketService
             .Include(t => t.Company)
             .AsNoTracking()
             .AsQueryable();
+
         if (!string.IsNullOrWhiteSpace(request.DepartureCity))
         {
             query = query.Where(t => t.Route.DepartureCity.ToLower() == request.DepartureCity.ToLower());
         }
+
         if (!string.IsNullOrWhiteSpace(request.DestinationCity))
         {
             query = query.Where(t => t.Route.DestinationCity.ToLower() == request.DestinationCity.ToLower());
@@ -35,10 +38,11 @@ public class TicketService : ITicketService
 
         query = query.Where(t => t.AvailableSeats >= request.PassengerCount);
 
-        if (request.Type.HasValue)
+
+        if (request.VehicleType.HasValue)
         {
-            query = query.Where(t => t.VehicleType == request.Type.Value);
-        }
+            query = query.Where(t => t.VehicleType == request.VehicleType.Value);
+        }       
 
         if (request.MaxPrice.HasValue)
         {
@@ -61,6 +65,8 @@ public class TicketService : ITicketService
             t.Route.DepartureStation,
             t.Route.DestinationCity,
             t.Route.DestinationStation,
+            t.DepartureCode,
+            t.DestinationCode,
             t.DepartureTime,
             t.ArrivalTime,
             t.Price,
@@ -87,6 +93,8 @@ public class TicketService : ITicketService
             ticket.Route.DepartureStation,
             ticket.Route.DestinationCity,
             ticket.Route.DestinationStation,
+            ticket.DepartureCode,
+            ticket.DestinationCode,
             ticket.DepartureTime,
             ticket.ArrivalTime,
             ticket.Price,
