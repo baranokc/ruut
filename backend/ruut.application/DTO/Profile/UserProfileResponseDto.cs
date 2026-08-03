@@ -5,7 +5,7 @@ public record UserProfileResponseDto(
     string Name,
     string LastName,
     string Email,
-    string PhoneNumber,
-    string ProfileImageUrl,
+    string? PhoneNumber,
+    string? ProfileImageUrl,
     DateTime CreatedAt
 );
