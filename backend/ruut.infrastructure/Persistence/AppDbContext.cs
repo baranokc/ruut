@@ -17,6 +17,7 @@ public class AppDbContext : DbContext
     public DbSet<Booking> Bookings => Set<Booking>();
     public DbSet<Passenger> Passengers => Set<Passenger>();
     public DbSet<SavedPassenger> SavedPassengers => Set<SavedPassenger>();
+    public DbSet<SpecialOffer> SpecialOffers => Set<SpecialOffer>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
