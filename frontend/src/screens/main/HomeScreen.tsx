@@ -5,453 +5,634 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
-  StatusBar,
-  Dimensions,
+  Image,
+  FlatList,
 } from 'react-native';
-import {
-  Bus,
-  Plane,
-  Train,
-  MapPin,
-  ArrowRightLeft,
-  Calendar,
-  Users,
-  Search,
-  Sparkles,
-  Clock,
-  ChevronRight,
-  ShieldCheck,
-} from 'lucide-react-native';
+import { Ionicons, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../constants/theme';
+import LocationSearchModal from '../../components/modals/LocationSearchModal';
+import DatePickerModal from '../../components/modals/DatePickerModal';
 
-const { width } = Dimensions.get('window');
+type CategoryType = 'plane' | 'bus' | 'hotel' | 'car';
+type TripType = 'one-way' | 'round-trip';
 
-export default function HomeScreen({ navigation }: { navigation: any }) {
-  const [transportType, setTransportType] = useState<'bus' | 'flight' | 'train'>('bus');
-  const [fromCity, setFromCity] = useState('İstanbul');
-  const [toCity, setToCity] = useState('Ankara');
-  const [date, setDate] = useState('Yarın, 6 Ağu');
-  const [passengers, setPassengers] = useState('1 Yolcu');
+interface OfferItem {
+  id: string;
+  title: string;
+  subtitle: string;
+  discount: string;
+}
 
-  const handleSwapCities = () => {
-    const temp = fromCity;
-    setFromCity(toCity);
-    setToCity(temp);
+const OFFERS: OfferItem[] = [
+  {
+    id: '1',
+    title: 'Fly More, Pay Less',
+    subtitle: 'Get up to 25% off on your first international flight booking.',
+    discount: '25% OFF',
+  },
+  {
+    id: '2',
+    title: 'Save Travel Costs',
+    subtitle: 'Travel while maintaining your budget with exclusive deals.',
+    discount: '15% OFF',
+  },
+];
+
+export default function HomeScreen({ navigation }: any) {
+  const [selectedCategory, setSelectedCategory] = useState<CategoryType>('plane');
+  const [tripType, setTripType] = useState<TripType>('round-trip');
+  const [fromLocation, setFromLocation] = useState('');
+  const [toLocation, setToLocation] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [activeInputType, setActiveInputType] = useState<'from' | 'to'>('from');
+
+  const [departureDate, setDepartureDate] = useState('');
+  const [returnDate, setReturnDate] = useState('');
+  const [dateModalVisible, setDateModalVisible] = useState(false);
+  const [activeDateType, setActiveDateType] = useState<'departure' | 'return'>('departure');
+
+  const openSearchModal = (type: 'from' | 'to') => {
+    setActiveInputType(type);
+    setModalVisible(true);
+  };
+
+  const handleSelectLocation = (location: string) => {
+    if (activeInputType === 'from') {
+      setFromLocation(location);
+    } else {
+      setToLocation(location);
+    }
+  };
+
+  const handleSwapLocations = () => {
+    const temp = fromLocation;
+    setFromLocation(toLocation);
+    setToLocation(temp);
+  };
+
+  const openDatePicker = (type: 'departure' | 'return') => {
+    setActiveDateType(type);
+    setDateModalVisible(true);
+  };
+
+  const handleSelectDate = (date: string) => {
+    if (activeDateType === 'departure') {
+      setDepartureDate(date);
+    } else {
+      setReturnDate(date);
+    }
   };
 
   const handleSearch = () => {
-    // Navigation to search results or booking flow
+    navigation.navigate('SearchResults');
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
-      
-      {/* Header Banner */}
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <View>
-            <Text style={styles.welcomeText}>Hoş Geldiniz 👋</Text>
-            <Text style={styles.userName}>Baran Öncüoğlu</Text>
+    <View style={styles.mainContainer}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.headerContainer}>
+          <View style={styles.userInfo}>
+            <Image
+              source={{ uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150' }}
+              style={styles.avatar}
+            />
+            <View>
+              <Text style={styles.greetingText}>Good Morning</Text>
+              <Text style={styles.userNameText}>Eren Büyüköner</Text>
+            </View>
           </View>
-          <TouchableOpacity style={styles.notificationBtn} activeOpacity={0.8}>
-            <ShieldCheck size={24} color={COLORS.cardBg} />
+          <TouchableOpacity style={styles.notificationButton}>
+            <Ionicons name="notifications" size={20} color={COLORS.azure[700]} />
           </TouchableOpacity>
         </View>
 
-        {/* Transport Type Selector */}
-        <View style={styles.transportSelector}>
-          <TouchableOpacity
-            style={[styles.transportTab, transportType === 'bus' && styles.activeTransportTab]}
-            onPress={() => setTransportType('bus')}
-            activeOpacity={0.9}
-          >
-            <Bus size={20} color={transportType === 'bus' ? COLORS.primary : COLORS.cardBg} />
-            <Text style={[styles.transportText, transportType === 'bus' && styles.activeTransportText]}>
-              Otobüs
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.transportTab, transportType === 'flight' && styles.activeTransportTab]}
-            onPress={() => setTransportType('flight')}
-            activeOpacity={0.9}
-          >
-            <Plane size={20} color={transportType === 'flight' ? COLORS.primary : COLORS.cardBg} />
-            <Text style={[styles.transportText, transportType === 'flight' && styles.activeTransportText]}>
-              Uçak
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.transportTab, transportType === 'train' && styles.activeTransportTab]}
-            onPress={() => setTransportType('train')}
-            activeOpacity={0.9}
-          >
-            <Train size={20} color={transportType === 'train' ? COLORS.primary : COLORS.cardBg} />
-            <Text style={[styles.transportText, transportType === 'train' && styles.activeTransportText]}>
-              Tren
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Search Card */}
         <View style={styles.searchCard}>
-          {/* From City */}
-          <TouchableOpacity style={styles.inputRow} activeOpacity={0.8}>
-            <View style={styles.inputIconContainer}>
-              <MapPin size={20} color={COLORS.primary} />
-            </View>
-            <View style={styles.inputContent}>
-              <Text style={styles.inputLabel}>Nereden</Text>
-              <Text style={styles.inputValue}>{fromCity}</Text>
-            </View>
-          </TouchableOpacity>
+          <View style={styles.categoryContainer}>
+            <TouchableOpacity
+              style={[styles.categoryTab, selectedCategory === 'plane' && styles.activeCategoryTab]}
+              onPress={() => setSelectedCategory('plane')}
+            >
+              <Ionicons
+                name="airplane"
+                size={20}
+                color={selectedCategory === 'plane' ? COLORS.azure[950] : COLORS.textSecondary}
+              />
+              <Text
+                style={[
+                  styles.categoryText,
+                  selectedCategory === 'plane' && styles.activeCategoryText,
+                ]}
+              >
+                Plane
+              </Text>
+            </TouchableOpacity>
 
-          {/* Swap Button */}
-          <View style={styles.swapContainer}>
-            <View style={styles.divider} />
-            <TouchableOpacity style={styles.swapButton} onPress={handleSwapCities} activeOpacity={0.8}>
-              <ArrowRightLeft size={18} color={COLORS.primary} />
+            <TouchableOpacity
+              style={[styles.categoryTab, selectedCategory === 'bus' && styles.activeCategoryTab]}
+              onPress={() => setSelectedCategory('bus')}
+            >
+              <FontAwesome5
+                name="bus"
+                size={18}
+                color={selectedCategory === 'bus' ? COLORS.azure[950] : COLORS.textSecondary}
+              />
+              <Text
+                style={[
+                  styles.categoryText,
+                  selectedCategory === 'bus' && styles.activeCategoryText,
+                ]}
+              >
+                Bus
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.categoryTab, selectedCategory === 'hotel' && styles.activeCategoryTab]}
+              onPress={() => setSelectedCategory('hotel')}
+            >
+              <FontAwesome5
+                name="bed"
+                size={18}
+                color={selectedCategory === 'hotel' ? COLORS.azure[950] : COLORS.textSecondary}
+              />
+              <Text
+                style={[
+                  styles.categoryText,
+                  selectedCategory === 'hotel' && styles.activeCategoryText,
+                ]}
+              >
+                Hotel
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.categoryTab, selectedCategory === 'car' && styles.activeCategoryTab]}
+              onPress={() => setSelectedCategory('car')}
+            >
+              <Ionicons
+                name="car"
+                size={20}
+                color={selectedCategory === 'car' ? COLORS.azure[950] : COLORS.textSecondary}
+              />
+              <Text
+                style={[
+                  styles.categoryText,
+                  selectedCategory === 'car' && styles.activeCategoryText,
+                ]}
+              >
+                Car
+              </Text>
             </TouchableOpacity>
           </View>
 
-          {/* To City */}
-          <TouchableOpacity style={styles.inputRow} activeOpacity={0.8}>
-            <View style={styles.inputIconContainer}>
-              <MapPin size={20} color={COLORS.state.high} />
-            </View>
-            <View style={styles.inputContent}>
-              <Text style={styles.inputLabel}>Nereye</Text>
-              <Text style={styles.inputValue}>{toCity}</Text>
-            </View>
-          </TouchableOpacity>
-
-          <View style={styles.fullDivider} />
-
-          {/* Date & Passengers Row */}
-          <View style={styles.rowInputs}>
-            <TouchableOpacity style={[styles.inputRow, styles.halfInput]} activeOpacity={0.8}>
-              <View style={styles.inputIconContainer}>
-                <Calendar size={20} color={COLORS.primary} />
+          <View style={styles.inputsWrapper}>
+            <TouchableOpacity style={styles.inputCard} onPress={() => openSearchModal('from')}>
+              <View style={styles.iconCircle}>
+                <Ionicons name="airplane-outline" size={20} color={COLORS.azure[950]} />
               </View>
-              <View style={styles.inputContent}>
-                <Text style={styles.inputLabel}>Tarih</Text>
-                <Text style={styles.inputValue}>{date}</Text>
+              <View style={styles.inputTextContainer}>
+                <Text style={styles.inputLabel}>From</Text>
+                <Text style={fromLocation ? styles.selectedText : styles.placeholderText}>
+                  {fromLocation || 'Enter origin city or airport'}
+                </Text>
               </View>
             </TouchableOpacity>
 
-            <View style={styles.verticalDivider} />
+            <TouchableOpacity style={styles.swapButton} onPress={handleSwapLocations}>
+              <Ionicons name="swap-vertical" size={18} color={COLORS.azure[950]} />
+            </TouchableOpacity>
 
-            <TouchableOpacity style={[styles.inputRow, styles.halfInput]} activeOpacity={0.8}>
-              <View style={styles.inputIconContainer}>
-                <Users size={20} color={COLORS.primary} />
+            <TouchableOpacity style={styles.inputCard} onPress={() => openSearchModal('to')}>
+              <View style={styles.iconCircle}>
+                <Ionicons name="location-sharp" size={20} color={COLORS.azure[950]} />
               </View>
-              <View style={styles.inputContent}>
-                <Text style={styles.inputLabel}>Yolcu</Text>
-                <Text style={styles.inputValue}>{passengers}</Text>
+              <View style={styles.inputTextContainer}>
+                <Text style={styles.inputLabel}>To</Text>
+                <Text style={toLocation ? styles.selectedText : styles.placeholderText}>
+                  {toLocation || 'Where do you want to go?'}
+                </Text>
               </View>
             </TouchableOpacity>
           </View>
 
-          {/* Search Button */}
-          <TouchableOpacity style={styles.searchButton} onPress={handleSearch} activeOpacity={0.9}>
-            <Search size={20} color={COLORS.cardBg} />
-            <Text style={styles.searchButtonText}>Bilet Bul</Text>
-          </TouchableOpacity>
-        </View>
+          <View style={styles.radioRow}>
+            <TouchableOpacity
+              style={[styles.radioButton, tripType === 'one-way' && styles.activeRadioButton]}
+              onPress={() => setTripType('one-way')}
+            >
+              <Ionicons
+                name={tripType === 'one-way' ? 'radio-button-on' : 'radio-button-off'}
+                size={20}
+                color={COLORS.azure[950]}
+              />
+              <Text style={styles.radioText}>One-way</Text>
+            </TouchableOpacity>
 
-        {/* Campaigns Banner Section */}
-        <View style={styles.sectionHeader}>
-          <View style={styles.sectionTitleRow}>
-            <Sparkles size={20} color={COLORS.state.mid} />
-            <Text style={styles.sectionTitle}>Kampanyalar ve Fırsatlar</Text>
+            <TouchableOpacity
+              style={[styles.radioButton, tripType === 'round-trip' && styles.activeRadioButton]}
+              onPress={() => setTripType('round-trip')}
+            >
+              <Ionicons
+                name={tripType === 'round-trip' ? 'radio-button-on' : 'radio-button-off'}
+                size={20}
+                color={COLORS.azure[950]}
+              />
+              <Text style={styles.radioText}>Round-trip</Text>
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity activeOpacity={0.7}>
-            <Text style={styles.seeAllText}>Tümü</Text>
-          </TouchableOpacity>
-        </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.campaignsScroll}>
-          <TouchableOpacity style={styles.campaignCard} activeOpacity={0.9}>
-            <View style={styles.campaignBadge}>
-              <Text style={styles.campaignBadgeText}>%20 İndirim</Text>
+          <View style={styles.datesRow}>
+            <TouchableOpacity style={styles.dateCard} onPress={() => openDatePicker('departure')}>
+              <Text style={styles.inputLabel}>Departure</Text>
+              <Text style={departureDate ? styles.selectedText : styles.dateValueText}>
+                {departureDate || 'Select Date'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.dateCard} onPress={() => openDatePicker('return')}>
+              <Text style={styles.inputLabel}>Return</Text>
+              <Text style={returnDate ? styles.selectedText : styles.dateValueText}>
+                {returnDate || 'Select Date'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity style={styles.passengersCard}>
+            <View style={styles.passengersLeft}>
+              <View style={styles.iconCircleSmall}>
+                <Ionicons name="people-outline" size={20} color={COLORS.azure[950]} />
+              </View>
+              <Text style={styles.passengersText}>Passengers</Text>
             </View>
-            <Text style={styles.campaignTitle}>Yaz Dönüşü Kampanyası</Text>
-            <Text style={styles.campaignSubtitle}>Tüm otobüs seferlerinde geçerli.</Text>
+            <Ionicons name="chevron-down" size={20} color={COLORS.azure[950]} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.campaignCard, { backgroundColor: COLORS.azure[800] }]} activeOpacity={0.9}>
-            <View style={[styles.campaignBadge, { backgroundColor: COLORS.state.mid }]}>
-              <Text style={styles.campaignBadgeText}>150 TL Bonus</Text>
-            </View>
-            <Text style={styles.campaignTitle}>İlk Uçuşuna Özel</Text>
-            <Text style={styles.campaignSubtitle}>RuutPay ile öde, anında kazan.</Text>
+          <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
+            <Text style={styles.searchButtonText}>Search</Text>
           </TouchableOpacity>
-        </ScrollView>
-
-        {/* Recent Searches */}
-        <View style={styles.sectionHeader}>
-          <View style={styles.sectionTitleRow}>
-            <Clock size={20} color={COLORS.primary} />
-            <Text style={styles.sectionTitle}>Son Aramalar</Text>
-          </View>
         </View>
 
-        <View style={styles.recentSearchCard}>
-          <View style={styles.recentInfo}>
-            <Text style={styles.recentCityText}>İstanbul → Ankara</Text>
-            <Text style={styles.recentDateText}>5 Ağustos • 1 Yolcu • Otobüs</Text>
-          </View>
-          <TouchableOpacity style={styles.recentArrow}>
-            <ChevronRight size={20} color={COLORS.textSecondary} />
-          </TouchableOpacity>
+        <View style={styles.offersSection}>
+          <Text style={styles.offersTitle}>Special Offers</Text>
+          <FlatList
+            data={OFFERS}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <View style={styles.offerCard}>
+                <View style={styles.offerTextContainer}>
+                  <Text style={styles.offerCardTitle}>{item.title}</Text>
+                  <Text style={styles.offerCardSubtitle}>{item.subtitle}</Text>
+                </View>
+                <View style={styles.offerIconBadge}>
+                  <Ionicons name="airplane" size={22} color={COLORS.cardBg} />
+                </View>
+              </View>
+            )}
+          />
         </View>
       </ScrollView>
-    </SafeAreaView>
+
+      <View style={styles.bottomNav}>
+        <TouchableOpacity style={styles.navItem}>
+          <Ionicons name="home" size={24} color={COLORS.cardBg} />
+          <Text style={[styles.navText, styles.activeNavText]}>Home</Text>
+          <View style={styles.activeDot} />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.navItem}>
+          <MaterialIcons name="confirmation-number" size={24} color={COLORS.azure[300]} />
+          <Text style={styles.navText}>Trips</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.navItem}>
+          <Ionicons name="person-outline" size={24} color={COLORS.azure[300]} />
+          <Text style={styles.navText}>Profile</Text>
+        </TouchableOpacity>
+      </View>
+
+      <LocationSearchModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onSelectLocation={handleSelectLocation}
+        placeholder={activeInputType === 'from' ? 'Enter origin city or airport' : 'Where do you want to go?'}
+      />
+
+      <DatePickerModal
+        visible={dateModalVisible}
+        onClose={() => setDateModalVisible(false)}
+        onSelectDate={handleSelectDate}
+        title={activeDateType === 'departure' ? 'Select Departure Date' : 'Select Return Date'}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  mainContainer: {
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  header: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: SPACING.md,
-    paddingTop: SPACING.md,
-    paddingBottom: SPACING.xl * 1.5,
-    borderBottomLeftRadius: RADIUS.lg * 1.5,
-    borderBottomRightRadius: RADIUS.lg * 1.5,
+  container: {
+    flex: 1,
   },
-  headerTop: {
+  contentContainer: {
+    paddingHorizontal: SPACING.md,
+    paddingTop: SPACING.xl,
+    paddingBottom: 100,
+  },
+  headerContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: SPACING.lg,
+    marginBottom: SPACING.md,
+    marginTop: SPACING.sm,
   },
-  welcomeText: {
+  userInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  avatar: {
+    width: 44,
+    height: 44,
+    borderRadius: RADIUS.full,
+  },
+  greetingText: {
     ...TYPOGRAPHY.caption,
-    color: COLORS.azure[200],
+    color: COLORS.textSecondary,
+    fontSize: 12,
   },
-  userName: {
-    ...TYPOGRAPHY.h3,
-    color: COLORS.cardBg,
+  userNameText: {
+    ...TYPOGRAPHY.body,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
   },
-  notificationBtn: {
+  notificationButton: {
     width: 40,
     height: 40,
     borderRadius: RADIUS.full,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: COLORS.azure[100],
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  transportSelector: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: RADIUS.md,
-    padding: 4,
-  },
-  transportTab: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: SPACING.sm + 2,
-    borderRadius: RADIUS.sm,
-    gap: SPACING.xs,
-  },
-  activeTransportTab: {
-    backgroundColor: COLORS.cardBg,
-  },
-  transportText: {
-    ...TYPOGRAPHY.body2,
-    fontFamily: TYPOGRAPHY.h4.fontFamily,
-    color: COLORS.cardBg,
-  },
-  activeTransportText: {
-    color: COLORS.primary,
-  },
-  scrollContent: {
-    paddingHorizontal: SPACING.md,
-    paddingBottom: SPACING.xl * 2,
-    marginTop: -SPACING.xl,
   },
   searchCard: {
-    backgroundColor: COLORS.cardBg,
+    backgroundColor: COLORS.azure[100],
     borderRadius: RADIUS.lg,
     padding: SPACING.md,
-    shadowColor: COLORS.grey[700],
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
+    marginBottom: SPACING.lg,
   },
-  inputRow: {
+  categoryContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: SPACING.md,
+  },
+  categoryTab: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    borderRadius: RADIUS.md,
+    gap: 4,
+  },
+  activeCategoryTab: {
+    backgroundColor: COLORS.cardBg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  categoryText: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.textSecondary,
+    fontWeight: '600',
+  },
+  activeCategoryText: {
+    color: COLORS.azure[950],
+    fontWeight: '700',
+  },
+  inputsWrapper: {
+    position: 'relative',
+    gap: SPACING.sm,
+    marginBottom: SPACING.md,
+  },
+  inputCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: SPACING.sm,
+    backgroundColor: COLORS.cardBg,
+    borderRadius: RADIUS.md,
+    padding: SPACING.sm,
+    height: 60,
   },
-  halfInput: {
-    flex: 1,
-  },
-  inputIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: RADIUS.sm,
+  iconCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: RADIUS.full,
     backgroundColor: COLORS.azure[50],
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: SPACING.sm,
   },
-  inputContent: {
+  inputTextContainer: {
     flex: 1,
   },
   inputLabel: {
     ...TYPOGRAPHY.caption,
+    fontSize: 11,
     color: COLORS.textSecondary,
+    fontWeight: '600',
   },
-  inputValue: {
+  selectedText: {
     ...TYPOGRAPHY.body2,
-    fontFamily: TYPOGRAPHY.h4.fontFamily,
     color: COLORS.textPrimary,
+    fontWeight: '600',
+    marginTop: 2,
   },
-  swapContainer: {
-    height: 1,
-    backgroundColor: COLORS.grey[100],
-    justifyContent: 'center',
-    alignItems: 'flex-end',
-    marginVertical: SPACING.xs,
-  },
-  divider: {
-    position: 'absolute',
-    left: 45,
-    right: 0,
-    height: 1,
-    backgroundColor: COLORS.grey[100],
+  placeholderText: {
+    ...TYPOGRAPHY.body2,
+    color: COLORS.textSecondary,
+    fontWeight: '600',
+    marginTop: 2,
   },
   swapButton: {
+    position: 'absolute',
+    right: 16,
+    top: '50%',
+    marginTop: -18,
+    zIndex: 10,
     width: 36,
     height: 36,
     borderRadius: RADIUS.full,
-    backgroundColor: COLORS.azure[50],
-    borderWidth: 1,
-    borderColor: COLORS.azure[100],
+    backgroundColor: COLORS.azure[200],
     justifyContent: 'center',
     alignItems: 'center',
-    right: SPACING.md,
+    borderWidth: 2,
+    borderColor: COLORS.cardBg,
   },
-  fullDivider: {
-    height: 1,
-    backgroundColor: COLORS.grey[100],
-    marginVertical: SPACING.sm,
+  radioRow: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+    marginBottom: SPACING.md,
   },
-  rowInputs: {
+  radioButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.cardBg,
+    height: 48,
+    borderRadius: RADIUS.md,
+    gap: SPACING.xs,
   },
-  verticalDivider: {
-    width: 1,
-    height: 36,
-    backgroundColor: COLORS.grey[100],
-    marginHorizontal: SPACING.sm,
+  activeRadioButton: {
+    borderWidth: 1,
+    borderColor: COLORS.azure[300],
+  },
+  radioText: {
+    ...TYPOGRAPHY.body2,
+    color: COLORS.textPrimary,
+    fontWeight: '600',
+  },
+  datesRow: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+    marginBottom: SPACING.md,
+  },
+  dateCard: {
+    flex: 1,
+    backgroundColor: COLORS.cardBg,
+    borderRadius: RADIUS.md,
+    padding: SPACING.md,
+    height: 60,
+    justifyContent: 'center',
+  },
+  dateValueText: {
+    ...TYPOGRAPHY.body2,
+    color: COLORS.textSecondary,
+    marginTop: 2,
+  },
+  passengersCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.cardBg,
+    borderRadius: RADIUS.md,
+    paddingHorizontal: SPACING.md,
+    height: 56,
+    marginBottom: SPACING.md,
+  },
+  passengersLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  iconCircleSmall: {
+    width: 32,
+    height: 32,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.azure[50],
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  passengersText: {
+    ...TYPOGRAPHY.body2,
+    color: COLORS.textPrimary,
+    fontWeight: '600',
   },
   searchButton: {
-    backgroundColor: COLORS.primary,
-    borderRadius: RADIUS.md,
+    backgroundColor: COLORS.azure[900],
     height: 52,
-    flexDirection: 'row',
+    borderRadius: RADIUS.md,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: SPACING.md,
-    gap: SPACING.sm,
   },
   searchButtonText: {
     ...TYPOGRAPHY.body,
-    fontFamily: TYPOGRAPHY.h4.fontFamily,
     color: COLORS.cardBg,
+    fontWeight: '700',
   },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: SPACING.lg,
-    marginBottom: SPACING.sm,
+  offersSection: {
+    marginBottom: SPACING.lg,
   },
-  sectionTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.xs,
-  },
-  sectionTitle: {
+  offersTitle: {
     ...TYPOGRAPHY.h4,
     color: COLORS.textPrimary,
+    marginBottom: SPACING.md,
   },
-  seeAllText: {
-    ...TYPOGRAPHY.body2,
-    color: COLORS.primary,
-    fontFamily: TYPOGRAPHY.h4.fontFamily,
-  },
-  campaignsScroll: {
-    gap: SPACING.md,
-    paddingVertical: SPACING.xs,
-  },
-  campaignCard: {
-    width: width * 0.75,
-    backgroundColor: COLORS.primary,
+  offerCard: {
+    width: 260,
+    backgroundColor: COLORS.azure[200],
     borderRadius: RADIUS.lg,
     padding: SPACING.md,
-    justifyContent: 'space-between',
-    height: 130,
-  },
-  campaignBadge: {
-    backgroundColor: COLORS.cardBg,
-    alignSelf: 'flex-start',
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: 2,
-    borderRadius: RADIUS.sm,
-  },
-  campaignBadgeText: {
-    ...TYPOGRAPHY.caption,
-    fontFamily: TYPOGRAPHY.h4.fontFamily,
-    color: COLORS.primary,
-  },
-  campaignTitle: {
-    ...TYPOGRAPHY.h4,
-    color: COLORS.cardBg,
-  },
-  campaignSubtitle: {
-    ...TYPOGRAPHY.caption,
-    color: COLORS.azure[100],
-  },
-  recentSearchCard: {
-    backgroundColor: COLORS.cardBg,
-    borderRadius: RADIUS.md,
-    padding: SPACING.md,
+    marginRight: SPACING.md,
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: SPACING.sm,
+    alignItems: 'flex-start',
   },
-  recentInfo: {
-    gap: 2,
+  offerTextContainer: {
+    flex: 1,
+    paddingRight: SPACING.xs,
   },
-  recentCityText: {
-    ...TYPOGRAPHY.body2,
-    fontFamily: TYPOGRAPHY.h4.fontFamily,
+  offerCardTitle: {
+    ...TYPOGRAPHY.body,
+    fontWeight: '700',
     color: COLORS.textPrimary,
+    marginBottom: 4,
   },
-  recentDateText: {
+  offerCardSubtitle: {
     ...TYPOGRAPHY.caption,
     color: COLORS.textSecondary,
+    fontSize: 11,
+    lineHeight: 15,
   },
-  recentArrow: {
-    padding: SPACING.xs,
+  offerIconBadge: {
+    width: 42,
+    height: 42,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.azure[800],
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  bottomNav: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 75,
+    backgroundColor: COLORS.azure[950],
+    borderTopLeftRadius: RADIUS.lg,
+    borderTopRightRadius: RADIUS.lg,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingBottom: 10,
+  },
+  navItem: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  navText: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.azure[300],
+    fontSize: 11,
+    marginTop: 2,
+  },
+  activeNavText: {
+    color: COLORS.cardBg,
+    fontWeight: '700',
+  },
+  activeDot: {
+    width: 4,
+    height: 4,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.cardBg,
+    marginTop: 2,
   },
 });
-
-

@@ -1,102 +1,131 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
+  FlatList,
   TouchableOpacity,
-  Dimensions,
+  useWindowDimensions,
+  ViewToken,
 } from 'react-native';
-import { Compass, Ticket, Search } from 'lucide-react-native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import RuutLogo from '../../components/illustrations/RuutLogo';
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../constants/theme';
 
-const { width } = Dimensions.get('window');
+type Props = NativeStackScreenProps<any, 'Onboarding'>;
 
-const ONBOARDING_SLIDES = [
+interface SlideItem {
+  id: string;
+  title: string;
+  description: string;
+  // Illüstrasyon bileşenlerini dinamik import edebilirsiniz
+}
+
+const SLIDES: SlideItem[] = [
   {
     id: '1',
     title: 'Discover Your New Path',
-    description: 'Discover the most efficient routes and enjoy a seamless journey to your destination.',
-    icon: Compass,
+    description:
+      'Discover the most efficient routes and enjoy a faster, seamless journey to your destination.',
   },
   {
     id: '2',
     title: 'All-in-One Booking',
-    description: 'Compare bus and flight tickets effortlessly to find the best options for your trip.',
-    icon: Ticket,
+    description:
+      'Compare bus and flight options instantly to find your perfect trip in one place.',
   },
   {
     id: '3',
     title: 'Ready to Explore?',
-    description: 'Book in minutes, instantly receive your ticket, and start your journey with Ruut.',
-    icon: Search,
+    description:
+      'Secure payments, instant tickets. Your journey begins with Ruut.',
   },
 ];
 
-export default function OnboardingScreen({ navigation }: any) {
+export default function OnboardingScreen({ navigation }: Props) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const flatListRef = useRef<FlatList>(null);
+  const { width } = useWindowDimensions();
+
+  const onViewableItemsChanged = useRef(
+    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+      if (viewableItems.length > 0 && viewableItems[0].index !== null) {
+        setCurrentIndex(viewableItems[0].index);
+      }
+    }
+  ).current;
 
   const handleNext = () => {
-    if (currentIndex < ONBOARDING_SLIDES.length - 1) {
-      setCurrentIndex(currentIndex + 1);
+    if (currentIndex < SLIDES.length - 1) {
+      flatListRef.current?.scrollToIndex({ index: currentIndex + 1 });
     } else {
-      navigation.navigate('Register');
+      navigation.replace('Register');
     }
   };
 
   const handleSkip = () => {
-    navigation.navigate('Register');
+    navigation.replace('Register');
   };
 
-  const currentSlide = ONBOARDING_SLIDES[currentIndex];
-  const IconComponent = currentSlide.icon;
-
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header Logo */}
+    <View style={styles.container}>
+      {/* Top Logo */}
       <View style={styles.header}>
-        <Text style={styles.logoText}>Ruut</Text>
+        <RuutLogo width={120} height={40} />
       </View>
 
-      {/* Center Illustration Area */}
-      <View style={styles.illustrationContainer}>
-        <View style={styles.iconCircle}>
-          <IconComponent color={COLORS.azure[700]} size={80} strokeWidth={1.5} />
-        </View>
+      {/* Slide Content */}
+      <FlatList
+        ref={flatListRef}
+        data={SLIDES}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={{ itemVisiblePercentThreshold: 50 }}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <View style={[styles.slide, { width }]}>
+            <View style={styles.illustrationPlaceholder}>
+              {/* İlgili illüstrasyon SVG'sini buraya yerleştirebilirsiniz */}
+            </View>
+            <Text style={styles.title}>{item.title}</Text>
+            <Text style={styles.description}>{item.description}</Text>
+          </View>
+        )}
+      />
+
+      {/* Pagination Dots */}
+      <View style={styles.paginationContainer}>
+        {SLIDES.map((_, index) => (
+          <View
+            key={index}
+            style={[
+              styles.dot,
+              currentIndex === index && styles.activeDot,
+            ]}
+          />
+        ))}
       </View>
 
-      {/* Content Section */}
-      <View style={styles.contentContainer}>
-        <Text style={styles.title}>{currentSlide.title}</Text>
-        <Text style={styles.description}>{currentSlide.description}</Text>
-
-        {/* Pagination Dots */}
-        <View style={styles.dotsContainer}>
-          {ONBOARDING_SLIDES.map((_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.dot,
-                currentIndex === index ? styles.activeDot : styles.inactiveDot,
-              ]}
-            />
-          ))}
-        </View>
-
-        {/* Navigation Buttons */}
-        <View style={styles.buttonRow}>
-          <TouchableOpacity onPress={handleSkip} style={styles.skipButton} activeOpacity={0.7}>
-            <Text style={styles.skipText}>Skip</Text>
+      {/* Action Buttons */}
+      <View style={styles.footer}>
+        {currentIndex < SLIDES.length - 1 ? (
+          <View style={styles.multiButtonContainer}>
+            <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
+              <Text style={styles.skipText}>Skip</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.primaryButton} onPress={handleNext}>
+              <Text style={styles.primaryButtonText}>Continue</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <TouchableOpacity style={[styles.primaryButton, styles.fullWidth]} onPress={handleNext}>
+            <Text style={styles.primaryButtonText}>Get Started</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity onPress={handleNext} style={styles.continueButton} activeOpacity={0.85}>
-            <Text style={styles.continueText}>
-              {currentIndex === ONBOARDING_SLIDES.length - 1 ? 'Get Started' : 'Continue'}
-            </Text>
-          </TouchableOpacity>
-        </View>
+        )}
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -104,92 +133,91 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
+    paddingVertical: SPACING.xl,
   },
   header: {
     alignItems: 'center',
-    marginTop: SPACING.md,
+    marginTop: SPACING.lg,
   },
-  logoText: {
-    fontSize: 42,
-    fontFamily: 'Lato_700Bold',
-    color: COLORS.azure[700],
-  },
-  illustrationContainer: {
-    flex: 1,
-    justifyContent: 'center',
+  slide: {
     alignItems: 'center',
-  },
-  iconCircle: {
-    width: width * 0.5,
-    height: width * 0.5,
-    borderRadius: (width * 0.5) / 2,
-    backgroundColor: COLORS.azure[100],
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: COLORS.azure[200],
-  },
-  contentContainer: {
     paddingHorizontal: SPACING.lg,
-    paddingBottom: SPACING.xl,
+    justifyContent: 'center',
+  },
+  illustrationPlaceholder: {
+    width: 240,
+    height: 240,
+    marginBottom: SPACING.xl,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   title: {
     ...TYPOGRAPHY.h3,
     color: COLORS.textPrimary,
     textAlign: 'center',
-    marginBottom: SPACING.xs,
+    marginBottom: SPACING.sm,
   },
   description: {
     ...TYPOGRAPHY.body2,
     color: COLORS.textSecondary,
     textAlign: 'center',
     paddingHorizontal: SPACING.md,
-    marginBottom: SPACING.lg,
   },
-  dotsContainer: {
+  paginationContainer: {
     flexDirection: 'row',
-    gap: 8,
-    marginBottom: SPACING.xl,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: SPACING.md,
   },
   dot: {
+    width: 8,
     height: 8,
-    borderRadius: 4,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.azure[300],
+    marginHorizontal: 4,
   },
   activeDot: {
-    width: 24,
-    backgroundColor: COLORS.azure[700],
+    backgroundColor: COLORS.primary,
+    width: 10,
+    height: 10,
   },
-  inactiveDot: {
-    width: 8,
-    backgroundColor: COLORS.azure[200],
+  footer: {
+    paddingHorizontal: SPACING.lg,
+    marginBottom: SPACING.md,
   },
-  buttonRow: {
+  multiButtonContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    width: '100%',
+    alignItems: 'center',
   },
   skipButton: {
-    paddingVertical: 14,
-    paddingHorizontal: SPACING.md,
+    flex: 1,
+    height: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: SPACING.sm,
+    borderRadius: RADIUS.md,
+    backgroundColor: COLORS.azure[100],
   },
   skipText: {
-    ...TYPOGRAPHY.body,
+    ...TYPOGRAPHY.body2,
     color: COLORS.textSecondary,
-    fontFamily: 'Lato_700Bold',
+    fontWeight: '600',
   },
-  continueButton: {
-    backgroundColor: COLORS.azure[700],
-    paddingVertical: 16,
-    paddingHorizontal: SPACING.xl,
-    borderRadius: RADIUS.md,
-    minWidth: 140,
+  primaryButton: {
+    flex: 1,
+    height: 48,
+    justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: COLORS.primary,
+    borderRadius: RADIUS.md,
   },
-  continueText: {
-    ...TYPOGRAPHY.body,
-    color: '#FFFFFF',
-    fontFamily: 'Lato_700Bold',
+  fullWidth: {
+    width: '100%',
+  },
+  primaryButtonText: {
+    ...TYPOGRAPHY.body2,
+    color: COLORS.cardBg,
+    fontWeight: '700',
   },
 });

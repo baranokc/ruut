@@ -1,8 +1,12 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
-import { COLORS, SPACING } from '../../constants/theme';
+import { View, StyleSheet } from 'react-native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import RuutLogo from '../../components/illustrations/RuutLogo';
+import { COLORS } from '../../constants/theme';
 
-export default function SplashScreen({ navigation }: any) {
+type Props = NativeStackScreenProps<any, 'Splash'>;
+
+export default function SplashScreen({ navigation }: Props) {
   useEffect(() => {
     const timer = setTimeout(() => {
       navigation.replace('Onboarding');
@@ -12,11 +16,9 @@ export default function SplashScreen({ navigation }: any) {
   }, [navigation]);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.logoContainer}>
-        <Text style={styles.logoText}>Ruut</Text>
-      </View>
-    </SafeAreaView>
+    <View style={styles.container}>
+      <RuutLogo width={160} height={60} />
+    </View>
   );
 }
 
@@ -26,14 +28,5 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  logoContainer: {
-    alignItems: 'center',
-  },
-  logoText: {
-    fontSize: 54,
-    fontFamily: 'Lato_700Bold',
-    color: COLORS.azure[700],
-    letterSpacing: -1,
   },
 });

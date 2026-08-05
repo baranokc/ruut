@@ -3,113 +3,112 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   TextInput,
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import { User, Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
-import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../constants/theme';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import RuutLogo from '../../components/illustrations/RuutLogo';
+import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../theme';
 
-export default function RegisterScreen({ navigation }: any) {
-  const [fullName, setFullName] = useState('');
+type Props = NativeStackScreenProps<any, 'Register'>;
+
+export default function RegisterScreen({ navigation }: Props) {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        
-        {/* Logo & Header */}
-        <View style={styles.header}>
-          <Text style={styles.logoText}>Ruut</Text>
-          <Text style={styles.title}>Let's get you started</Text>
-          <Text style={styles.subtitle}>Create an account to manage trips and access tickets.</Text>
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+      {/* Top Logo */}
+      <View style={styles.header}>
+        <RuutLogo width={140} height={45} />
+        <Text style={styles.title}>Let's get you started</Text>
+        <Text style={styles.subtitle}>
+          Create an account to manage tasks and stay focused.
+        </Text>
+      </View>
+
+      {/* Form Fields */}
+      <View style={styles.form}>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Name"
+            placeholderTextColor={COLORS.textSecondary}
+            value={name}
+            onChangeText={setName}
+          />
         </View>
 
-        {/* Input Form */}
-        <View style={styles.form}>
-          {/* Full Name */}
-          <View style={styles.inputWrapper}>
-            <User color={COLORS.azure[700]} size={20} style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Full name"
-              placeholderTextColor={COLORS.grey[400]}
-              value={fullName}
-              onChangeText={setFullName}
-            />
-          </View>
-
-          {/* Email */}
-          <View style={styles.inputWrapper}>
-            <Mail color={COLORS.azure[700]} size={20} style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Email address"
-              placeholderTextColor={COLORS.grey[400]}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              value={email}
-              onChangeText={setEmail}
-            />
-          </View>
-
-          {/* Password */}
-          <View style={styles.inputWrapper}>
-            <Lock color={COLORS.azure[700]} size={20} style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Password"
-              placeholderTextColor={COLORS.grey[400]}
-              secureTextEntry={!showPassword}
-              value={password}
-              onChangeText={setPassword}
-            />
-            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-              {showPassword ? (
-                <EyeOff color={COLORS.grey[400]} size={20} />
-              ) : (
-                <Eye color={COLORS.grey[400]} size={20} />
-              )}
-            </TouchableOpacity>
-          </View>
-
-          {/* Confirm Password */}
-          <View style={styles.inputWrapper}>
-            <Lock color={COLORS.azure[700]} size={20} style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Confirm Password"
-              placeholderTextColor={COLORS.grey[400]}
-              secureTextEntry={!showPassword}
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-            />
-          </View>
-
-          {/* Submit Button */}
-          <TouchableOpacity
-            style={styles.submitBtn}
-            onPress={() => navigation.navigate('Login')}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.submitBtnText}>Create an Account</Text>
-          </TouchableOpacity>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="E-mail address"
+            placeholderTextColor={COLORS.textSecondary}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            value={email}
+            onChangeText={setEmail}
+          />
         </View>
 
-        {/* Switch to Login */}
-        <View style={styles.footerRow}>
-          <Text style={styles.footerText}>Already have an account? </Text>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            placeholderTextColor={COLORS.textSecondary}
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+          />
+        </View>
+
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Confirm Password"
+            placeholderTextColor={COLORS.textSecondary}
+            secureTextEntry
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+          />
+        </View>
+
+        {/* Submit Button */}
+        <TouchableOpacity style={styles.submitButton}>
+          <Text style={styles.submitButtonText}>Create an Account</Text>
+        </TouchableOpacity>
+
+        {/* Sign In Link */}
+        <View style={styles.loginLinkContainer}>
+          <Text style={styles.loginText}>Already have an account? </Text>
           <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-            <Text style={styles.linkText}>Sign In</Text>
+            <Text style={styles.loginLink}>Sign in.</Text>
           </TouchableOpacity>
         </View>
 
-      </ScrollView>
-    </SafeAreaView>
+        {/* Divider & Social Login */}
+        <View style={styles.dividerContainer}>
+          <View style={styles.divider} />
+          <Text style={styles.dividerText}>Or Continue With Account</Text>
+          <View style={styles.divider} />
+        </View>
+
+        <View style={styles.socialContainer}>
+          <TouchableOpacity style={styles.socialButton}>
+            <Text style={styles.socialIconText}>G</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.socialButton}>
+            <Text style={styles.socialIconText}></Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.socialButton}>
+            <Text style={styles.socialIconText}>f</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </ScrollView>
   );
 }
 
@@ -118,75 +117,104 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  scrollContent: {
-    padding: SPACING.lg,
-    justifyContent: 'center',
-    minHeight: '100%',
+  contentContainer: {
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.xl,
   },
   header: {
     alignItems: 'center',
-    marginBottom: SPACING.xl,
-  },
-  logoText: {
-    fontSize: 42,
-    fontFamily: 'Lato_700Bold',
-    color: COLORS.azure[700],
-    marginBottom: SPACING.md,
+    marginTop: SPACING.md,
+    marginBottom: SPACING.lg,
   },
   title: {
     ...TYPOGRAPHY.h3,
     color: COLORS.textPrimary,
-    marginBottom: 4,
+    marginTop: SPACING.md,
   },
   subtitle: {
-    ...TYPOGRAPHY.body2,
+    ...TYPOGRAPHY.caption,
     color: COLORS.textSecondary,
     textAlign: 'center',
+    marginTop: SPACING.xs,
   },
   form: {
-    gap: SPACING.md,
-    marginBottom: SPACING.lg,
+    width: '100%',
   },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  inputContainer: {
     backgroundColor: COLORS.cardBg,
     borderRadius: RADIUS.md,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: 14,
     borderWidth: 1,
-    borderColor: COLORS.azure[100],
-  },
-  inputIcon: {
-    marginRight: SPACING.sm,
+    borderColor: COLORS.azure[200],
+    marginBottom: SPACING.md,
+    paddingHorizontal: SPACING.md,
+    height: 48,
+    justifyContent: 'center',
   },
   input: {
-    flex: 1,
-    ...TYPOGRAPHY.body,
+    ...TYPOGRAPHY.body2,
     color: COLORS.textPrimary,
   },
-  submitBtn: {
-    backgroundColor: COLORS.azure[700],
+  submitButton: {
+    backgroundColor: COLORS.primary,
+    height: 48,
     borderRadius: RADIUS.md,
-    paddingVertical: 16,
+    justifyContent: 'center',
     alignItems: 'center',
     marginTop: SPACING.sm,
   },
-  submitBtnText: {
-    ...TYPOGRAPHY.h4,
-    color: '#FFFFFF',
+  submitButtonText: {
+    ...TYPOGRAPHY.body2,
+    color: COLORS.cardBg,
+    fontWeight: '700',
   },
-  footerRow: {
+  loginLinkContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
+    marginTop: SPACING.md,
   },
-  footerText: {
-    ...TYPOGRAPHY.body2,
+  loginText: {
+    ...TYPOGRAPHY.caption,
     color: COLORS.textSecondary,
   },
-  linkText: {
-    ...TYPOGRAPHY.body2,
-    fontFamily: 'Lato_700Bold',
-    color: COLORS.azure[700],
+  loginLink: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.primary,
+    fontWeight: '700',
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: SPACING.xl,
+  },
+  divider: {
+    flex: 1,
+    height: 1,
+    backgroundColor: COLORS.azure[200],
+  },
+  dividerText: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.textSecondary,
+    marginHorizontal: SPACING.sm,
+    fontSize: 10,
+  },
+  socialContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: SPACING.md,
+  },
+  socialButton: {
+    width: 44,
+    height: 44,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.cardBg,
+    borderWidth: 1,
+    borderColor: COLORS.azure[200],
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  socialIconText: {
+    fontSize: 18,
+    color: COLORS.textPrimary,
+    fontWeight: 'bold',
   },
 });
