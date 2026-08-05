@@ -3,57 +3,48 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   TouchableOpacity,
-  useWindowDimensions,
-  ViewToken,
+  FlatList,
+  Dimensions,
+  SafeAreaView,
 } from 'react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import RuutLogo from '../../components/illustrations/RuutLogo';
+import { Ionicons } from '@expo/vector-icons';
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../constants/theme';
+import RuutLogo from '../../components/illustrations/RuutLogo';
 
-type Props = NativeStackScreenProps<any, 'Onboarding'>;
+const { width } = Dimensions.get('window');
 
-interface SlideItem {
+interface OnboardingSlide {
   id: string;
   title: string;
-  description: string;
-  // Illüstrasyon bileşenlerini dinamik import edebilirsiniz
+  subtitle: string;
+  type: 'compass' | 'tickets' | 'form';
 }
 
-const SLIDES: SlideItem[] = [
+const SLIDES: OnboardingSlide[] = [
   {
     id: '1',
     title: 'Discover Your New Path',
-    description:
-      'Discover the most efficient routes and enjoy a faster, seamless journey to your destination.',
+    subtitle: 'Discover the most efficient routes and enjoy a faster, seamless journey to your destination.',
+    type: 'compass',
   },
   {
     id: '2',
     title: 'All-in-One Booking',
-    description:
-      'Compare bus and flight options instantly to find your perfect trip in one place.',
+    subtitle: 'Compare bus and flight options instantly to find your perfect trip in one place.',
+    type: 'tickets',
   },
   {
     id: '3',
     title: 'Ready to Explore?',
-    description:
-      'Secure payments, instant tickets. Your journey begins with Ruut.',
+    subtitle: 'Secure payments, instant tickets. Your journey begins with Ruut.',
+    type: 'form',
   },
 ];
 
-export default function OnboardingScreen({ navigation }: Props) {
+export default function OnboardingScreen({ navigation }: any) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
-  const { width } = useWindowDimensions();
-
-  const onViewableItemsChanged = useRef(
-    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
-      if (viewableItems.length > 0 && viewableItems[0].index !== null) {
-        setCurrentIndex(viewableItems[0].index);
-      }
-    }
-  ).current;
 
   const handleNext = () => {
     if (currentIndex < SLIDES.length - 1) {
@@ -67,157 +58,286 @@ export default function OnboardingScreen({ navigation }: Props) {
     navigation.replace('Register');
   };
 
+  const handleScroll = (event: any) => {
+    const contentOffsetX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(contentOffsetX / width);
+    setCurrentIndex(index);
+  };
+
+  const renderIllustration = (type: string) => {
+    if (type === 'compass') {
+      return (
+        <View style={styles.illustrationCircle}>
+          <Ionicons name="compass-outline" size={120} color={COLORS.azure[900]} />
+        </View>
+      );
+    } else if (type === 'tickets') {
+      return (
+        <View style={styles.illustrationCardStack}>
+          <View style={[styles.mockTicketCard, styles.ticketBack]}>
+            <Text style={styles.mockTicketTitle}>Turkish Airlines</Text>
+            <Text style={styles.mockTicketPrice}>€89.00</Text>
+          </View>
+          <View style={[styles.mockTicketCard, styles.ticketFront]}>
+            <Text style={styles.mockTicketTitle}>Metro Turizm</Text>
+            <Text style={styles.mockTicketPrice}>€15.00</Text>
+          </View>
+        </View>
+      );
+    } else {
+      return (
+        <View style={styles.mockFormCard}>
+          <Text style={styles.mockFormHeader}>Metro Turizm</Text>
+          <Text style={styles.mockFormPrice}>€15.00</Text>
+          <View style={styles.mockInputLine} />
+          <View style={styles.mockInputLine} />
+        </View>
+      );
+    }
+  };
+
   return (
-    <View style={styles.container}>
-      {/* Top Logo */}
-      <View style={styles.header}>
-        <RuutLogo width={120} height={40} />
-      </View>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        {/* Üst Logo Alanı */}
+        <View style={styles.headerContainer}>
+          <RuutLogo width={120} height={44} />
+        </View>
 
-      {/* Slide Content */}
-      <FlatList
-        ref={flatListRef}
-        data={SLIDES}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onViewableItemsChanged={onViewableItemsChanged}
-        viewabilityConfig={{ itemVisiblePercentThreshold: 50 }}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={[styles.slide, { width }]}>
-            <View style={styles.illustrationPlaceholder}>
-              {/* İlgili illüstrasyon SVG'sini buraya yerleştirebilirsiniz */}
+        {/* Kaydırılabilir Slaytlar */}
+        <FlatList
+          ref={flatListRef}
+          data={SLIDES}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <View style={styles.slide}>
+              <View style={styles.illustrationContainer}>
+                {renderIllustration(item.type)}
+              </View>
+
+              <Text style={styles.title}>{item.title}</Text>
+              <Text style={styles.subtitle}>{item.subtitle}</Text>
             </View>
-            <Text style={styles.title}>{item.title}</Text>
-            <Text style={styles.description}>{item.description}</Text>
-          </View>
-        )}
-      />
+          )}
+        />
 
-      {/* Pagination Dots */}
-      <View style={styles.paginationContainer}>
-        {SLIDES.map((_, index) => (
-          <View
-            key={index}
-            style={[
-              styles.dot,
-              currentIndex === index && styles.activeDot,
-            ]}
-          />
-        ))}
-      </View>
+        {/* Sayfa Noktaları (Pagination Dots) */}
+        <View style={styles.paginationContainer}>
+          {SLIDES.map((_, index) => (
+            <View
+              key={index}
+              style={[
+                styles.dot,
+                currentIndex === index ? styles.activeDot : styles.inactiveDot,
+              ]}
+            />
+          ))}
+        </View>
 
-      {/* Action Buttons */}
-      <View style={styles.footer}>
-        {currentIndex < SLIDES.length - 1 ? (
-          <View style={styles.multiButtonContainer}>
-            <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
-              <Text style={styles.skipText}>Skip</Text>
+        {/* Alt Buton Alanı */}
+        <View style={styles.bottomContainer}>
+          {currentIndex === SLIDES.length - 1 ? (
+            // 3. Slayt: Ekranı Kaplayan Get Started Butonu
+            <TouchableOpacity
+              style={styles.getStartedButton}
+              onPress={() => navigation.replace('Register')}
+            >
+              <Text style={styles.getStartedButtonText}>Get Started</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.primaryButton} onPress={handleNext}>
-              <Text style={styles.primaryButtonText}>Continue</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <TouchableOpacity style={[styles.primaryButton, styles.fullWidth]} onPress={handleNext}>
-            <Text style={styles.primaryButtonText}>Get Started</Text>
-          </TouchableOpacity>
-        )}
+          ) : (
+            // 1. ve 2. Slayt: Skip + Continue Butonları
+            <View style={styles.twoButtonRow}>
+              <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
+                <Text style={styles.skipButtonText}>Skip</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.continueButton} onPress={handleNext}>
+                <Text style={styles.continueButtonText}>Continue</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
-    paddingVertical: SPACING.xl,
   },
-  header: {
+  headerContainer: {
     alignItems: 'center',
-    marginTop: SPACING.lg,
+    paddingTop: SPACING.md,
+    paddingBottom: SPACING.sm,
   },
   slide: {
+    width: width,
     alignItems: 'center',
     paddingHorizontal: SPACING.lg,
     justifyContent: 'center',
   },
-  illustrationPlaceholder: {
-    width: 240,
-    height: 240,
-    marginBottom: SPACING.xl,
+  illustrationContainer: {
+    height: 260,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.lg,
+  },
+  illustrationCircle: {
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: COLORS.azure[100],
     justifyContent: 'center',
     alignItems: 'center',
   },
+  illustrationCardStack: {
+    width: 220,
+    height: 180,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  mockTicketCard: {
+    width: 200,
+    padding: SPACING.md,
+    borderRadius: RADIUS.md,
+    backgroundColor: COLORS.azure[100],
+    position: 'absolute',
+  },
+  ticketBack: {
+    top: 10,
+    transform: [{ rotate: '-6deg' }],
+    opacity: 0.7,
+  },
+  ticketFront: {
+    top: 40,
+    transform: [{ rotate: '3deg' }],
+    elevation: 3,
+  },
+  mockTicketTitle: {
+    ...TYPOGRAPHY.caption,
+    fontWeight: '700',
+    color: COLORS.azure[950],
+  },
+  mockTicketPrice: {
+    ...TYPOGRAPHY.body2,
+    fontWeight: '700',
+    color: COLORS.azure[900],
+    marginTop: 4,
+  },
+  mockFormCard: {
+    width: 200,
+    padding: SPACING.md,
+    borderRadius: RADIUS.md,
+    backgroundColor: COLORS.azure[100],
+    gap: 8,
+  },
+  mockFormHeader: {
+    ...TYPOGRAPHY.caption,
+    fontWeight: '700',
+    color: COLORS.azure[950],
+  },
+  mockFormPrice: {
+    ...TYPOGRAPHY.body2,
+    fontWeight: '700',
+    color: COLORS.azure[900],
+  },
+  mockInputLine: {
+    height: 12,
+    backgroundColor: COLORS.cardBg,
+    borderRadius: RADIUS.sm,
+  },
   title: {
     ...TYPOGRAPHY.h3,
-    color: COLORS.textPrimary,
+    fontWeight: '700',
+    color: COLORS.azure[950],
     textAlign: 'center',
-    marginBottom: SPACING.sm,
+    marginBottom: SPACING.xs,
   },
-  description: {
+  subtitle: {
     ...TYPOGRAPHY.body2,
     color: COLORS.textSecondary,
     textAlign: 'center',
     paddingHorizontal: SPACING.md,
+    lineHeight: 20,
   },
   paginationContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     marginVertical: SPACING.md,
+    gap: 8,
   },
   dot: {
-    width: 8,
     height: 8,
-    borderRadius: RADIUS.full,
-    backgroundColor: COLORS.azure[300],
-    marginHorizontal: 4,
+    borderRadius: 4,
   },
   activeDot: {
+    width: 24,
     backgroundColor: COLORS.primary,
-    width: 10,
-    height: 10,
   },
-  footer: {
-    paddingHorizontal: SPACING.lg,
-    marginBottom: SPACING.md,
+  inactiveDot: {
+    width: 8,
+    backgroundColor: COLORS.azure[200],
   },
-  multiButtonContainer: {
+  bottomContainer: {
+    paddingHorizontal: SPACING.md,
+    paddingBottom: SPACING.lg,
+    paddingTop: SPACING.xs,
+  },
+  twoButtonRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    gap: SPACING.md,
   },
   skipButton: {
     flex: 1,
-    height: 48,
+    height: 50,
+    borderRadius: RADIUS.md,
+    backgroundColor: COLORS.cardBg,
+    borderWidth: 1,
+    borderColor: COLORS.azure[200],
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: SPACING.sm,
-    borderRadius: RADIUS.md,
-    backgroundColor: COLORS.azure[100],
   },
-  skipText: {
+  skipButtonText: {
     ...TYPOGRAPHY.body2,
-    color: COLORS.textSecondary,
-    fontWeight: '600',
-  },
-  primaryButton: {
-    flex: 1,
-    height: 48,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: COLORS.primary,
-    borderRadius: RADIUS.md,
-  },
-  fullWidth: {
-    width: '100%',
-  },
-  primaryButtonText: {
-    ...TYPOGRAPHY.body2,
-    color: COLORS.cardBg,
     fontWeight: '700',
+    color: COLORS.textSecondary,
+  },
+  continueButton: {
+    flex: 1,
+    height: 50,
+    borderRadius: RADIUS.md,
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  continueButtonText: {
+    ...TYPOGRAPHY.body2,
+    fontWeight: '700',
+    color: COLORS.cardBg,
+  },
+  getStartedButton: {
+    width: '100%',
+    height: 52,
+    borderRadius: RADIUS.md,
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  getStartedButtonText: {
+    ...TYPOGRAPHY.body,
+    fontWeight: '700',
+    color: COLORS.cardBg,
   },
 });

@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import RuutLogo from '../../components/illustrations/RuutLogo';
-import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../theme';
+import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../constants/theme';
 
 type Props = NativeStackScreenProps<any, 'Register'>;
 

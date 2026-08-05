@@ -15,6 +15,14 @@ export default function LoginScreen({ navigation, onLoginSuccess }: any) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
+  const handleLogin = () => {
+    if (onLoginSuccess) {
+      onLoginSuccess();
+    } else {
+      navigation.replace('Home');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
@@ -62,7 +70,7 @@ export default function LoginScreen({ navigation, onLoginSuccess }: any) {
 
           <TouchableOpacity
             style={styles.submitBtn}
-            onPress={onLoginSuccess}
+            onPress={handleLogin}
             activeOpacity={0.85}
           >
             <Text style={styles.submitBtnText}>Sign In</Text>

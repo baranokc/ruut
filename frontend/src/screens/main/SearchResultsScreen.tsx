@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../constants/theme';
+import FareTypeModal from '../../components/modals/FareTypeModal';
 
 export interface FlightTicket {
   id: string;
@@ -84,6 +85,7 @@ const DATES = [
 
 export default function SearchResultsScreen({ navigation }: any) {
   const [selectedDate, setSelectedDate] = useState(13);
+  const [fareModalVisible, setFareModalVisible] = useState(false);
 
   return (
     <View style={styles.container}>
@@ -149,7 +151,11 @@ export default function SearchResultsScreen({ navigation }: any) {
         </ScrollView>
 
         {MOCK_FLIGHTS.map((flight) => (
-          <TouchableOpacity key={flight.id} style={styles.flightCard}>
+          <TouchableOpacity
+            key={flight.id}
+            style={styles.flightCard}
+            onPress={() => setFareModalVisible(true)}
+          >
             <View style={styles.cardHeader}>
               <Text style={styles.airlineName}>{flight.airline}</Text>
               <Text style={styles.priceText}>
@@ -192,6 +198,14 @@ export default function SearchResultsScreen({ navigation }: any) {
           </TouchableOpacity>
         ))}
       </ScrollView>
+
+      <FareTypeModal
+        visible={fareModalVisible}
+        onClose={() => setFareModalVisible(false)}
+        onSelectFare={(fare) => {
+          console.log('Selected Fare Package:', fare);
+        }}
+      />
     </View>
   );
 }
