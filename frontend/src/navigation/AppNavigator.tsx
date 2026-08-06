@@ -9,6 +9,7 @@ import HomeScreen from '../screens/main/HomeScreen';
 import SearchResultsScreen, { TicketItem } from '../screens/main/SearchResultsScreen';
 import BusDetailsScreen from '../screens/main/BusDetailsScreen';
 import FlightDetailsScreen from '../screens/main/FlightDetailsScreen';
+import HotelDetailsScreen from '../screens/main/HotelDetailsScreen';
 import PaymentScreen from '../screens/main/PaymentScreen';
 import BookingSuccessScreen from '../screens/main/BookingSuccessScreen';
 import TripsScreen from '../screens/main/TripsScreen';
@@ -35,6 +36,9 @@ export type RootStackParamList = {
   FlightDetails: {
     ticket?: TicketItem | null;
     fare?: any;
+  } | undefined;
+  HotelDetails: {
+    hotel?: any;
   } | undefined;
   Payment: {
     ticket?: TicketItem | null;
@@ -63,6 +67,7 @@ export default function AppNavigator() {
       <Stack.Screen name="SearchResults" component={SearchResultsScreen} />
       <Stack.Screen name="BusDetails" component={BusDetailsScreen} />
       <Stack.Screen name="FlightDetails" component={FlightDetailsScreen} />
+      <Stack.Screen name="HotelDetails" component={HotelDetailsScreen} />
       <Stack.Screen name="Payment" component={PaymentScreen} />
       <Stack.Screen name="BookingSuccess" component={BookingSuccessScreen} />
       <Stack.Screen name="Trips" component={TripsScreen} />

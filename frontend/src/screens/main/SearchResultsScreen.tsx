@@ -13,7 +13,7 @@ import SeatSelectionModal from '../../components/modals/SeatSelectionModal';
 
 export interface TicketItem {
   id: string;
-  providerName: string; // Firma veya Hava yolu adı
+  providerName: string;
   price: number;
   currency: string;
   originCode: string;
@@ -25,6 +25,18 @@ export interface TicketItem {
   arrivalTime: string;
   arrivalDate: string;
   duration: string;
+}
+
+export interface HotelItem {
+  id: string;
+  name: string;
+  location: string;
+  rating: number;
+  reviewsCount: number;
+  pricePerNight: number;
+  currency: string;
+  roomType: string;
+  amenities: string[];
 }
 
 // Uçak Mock Verileri
@@ -93,20 +105,42 @@ const MOCK_BUSES: TicketItem[] = [
     arrivalDate: '13 Sep, 2025',
     duration: '6h 15m',
   },
+];
+
+// Otel Mock Verileri
+const MOCK_HOTELS: HotelItem[] = [
   {
-    id: 'b3',
-    providerName: 'Pamukkale Turizm',
-    price: 17.50,
+    id: 'h1',
+    name: 'Grand Hyatt Istanbul',
+    location: 'Taksim, Istanbul',
+    rating: 4.8,
+    reviewsCount: 1240,
+    pricePerNight: 145.00,
     currency: '€',
-    originCode: 'ESE',
-    originCity: 'Istanbul',
-    destinationCode: 'AŞTİ',
-    destinationCity: 'Ankara',
-    departureTime: '12:00 PM',
-    departureDate: '13 Sep, 2025',
-    arrivalTime: '5:50 PM',
-    arrivalDate: '13 Sep, 2025',
-    duration: '5h 50m',
+    roomType: 'Deluxe King Room',
+    amenities: ['Wi-Fi', 'Pool', 'Breakfast'],
+  },
+  {
+    id: 'h2',
+    name: 'Swissôtel The Bosphorus',
+    location: 'Beşiktaş, Istanbul',
+    rating: 4.9,
+    reviewsCount: 2150,
+    pricePerNight: 210.00,
+    currency: '€',
+    roomType: 'Executive Bosphorus Suite',
+    amenities: ['Wi-Fi', 'Spa', 'Breakfast'],
+  },
+  {
+    id: 'h3',
+    name: 'Radisson Blu Hotel',
+    location: 'Şişli, Istanbul',
+    rating: 4.5,
+    reviewsCount: 890,
+    pricePerNight: 98.50,
+    currency: '€',
+    roomType: 'Standard Double Room',
+    amenities: ['Wi-Fi', 'Gym'],
   },
 ];
 
@@ -123,19 +157,17 @@ export default function SearchResultsScreen({ route, navigation }: any) {
   const {
     category = 'bus',
     tripType = 'one-way',
-    fromLocation = 'ISTANBUL (ESENLER)',
-    toLocation = 'ANKARA (AŞTİ)',
+    fromLocation = 'ISTANBUL',
+    toLocation = 'ANKARA',
     departureDate = '13 Sep, 2025',
   } = route?.params || {};
 
   const [selectedDate, setSelectedDate] = useState(13);
   const [fareModalVisible, setFareModalVisible] = useState(false);
   const [seatModalVisible, setSeatModalVisible] = useState(false);
-  const [selectedSeatNumber, setSelectedSeatNumber] = useState<number | null>(null);
   const [selectedTicket, setSelectedTicket] = useState<TicketItem | null>(null);
 
-  // Kategoriye göre mock veri seçimi
-  const ticketsList = category === 'bus' ? MOCK_BUSES : MOCK_FLIGHTS;
+  const isHotel = category === 'hotel';
 
   return (
     <View style={styles.container}>
@@ -144,7 +176,9 @@ export default function SearchResultsScreen({ route, navigation }: any) {
         <TouchableOpacity style={styles.backButton} onPress={() => navigation?.goBack()}>
           <Ionicons name="chevron-back" size={20} color={COLORS.azure[950]} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Search Results</Text>
+        <Text style={styles.headerTitle}>
+          {isHotel ? 'Hotel Results' : 'Search Results'}
+        </Text>
         <View style={styles.headerPlaceholder} />
       </View>
 
@@ -160,6 +194,8 @@ export default function SearchResultsScreen({ route, navigation }: any) {
               <View style={styles.summaryLine} />
               {category === 'bus' ? (
                 <FontAwesome5 name="bus" size={16} color={COLORS.cardBg} />
+              ) : isHotel ? (
+                <FontAwesome5 name="bed" size={16} color={COLORS.cardBg} />
               ) : (
                 <Ionicons name="airplane" size={18} color={COLORS.cardBg} />
               )}
@@ -167,20 +203,22 @@ export default function SearchResultsScreen({ route, navigation }: any) {
             </View>
 
             <View style={[styles.summaryRightAlign, styles.locationAlign]}>
-              <Text style={styles.summaryCityText} numberOfLines={1}>{toLocation}</Text>
+              <Text style={styles.summaryCityText} numberOfLines={1}>
+                {isHotel ? '1 Room, 2 Guests' : toLocation}
+              </Text>
             </View>
           </View>
 
           <View style={styles.summaryMetaRow}>
             <View>
-              <Text style={styles.summaryMetaLabel}>Departure</Text>
+              <Text style={styles.summaryMetaLabel}>{isHotel ? 'Check-in' : 'Departure'}</Text>
               <Text style={styles.summaryMetaValue}>{departureDate}</Text>
             </View>
 
             <View style={styles.summaryRightAlign}>
-              <Text style={styles.summaryMetaLabel}>Type</Text>
+              <Text style={styles.summaryMetaLabel}>{isHotel ? 'Duration' : 'Type'}</Text>
               <Text style={styles.summaryMetaValue}>
-                {tripType === 'one-way' ? 'One-way' : 'Round-trip'}
+                {isHotel ? '2 Nights' : tripType === 'one-way' ? 'One-way' : 'Round-trip'}
               </Text>
             </View>
           </View>
@@ -207,65 +245,111 @@ export default function SearchResultsScreen({ route, navigation }: any) {
           })}
         </ScrollView>
 
-        {/* Ticket List (Bus or Plane) */}
-        {ticketsList.map((ticket) => (
-          <TouchableOpacity
-            key={ticket.id}
-            style={styles.flightCard}
-            onPress={() => {
-              setSelectedTicket(ticket);
-              if (category === 'bus') {
-                setSeatModalVisible(true);
-              } else {
-                setFareModalVisible(true); // Uçak ise paket seçimi
-              }
-            }}
-          >
-            <View style={styles.cardHeader}>
-              <Text style={styles.airlineName}>{ticket.providerName}</Text>
-              <Text style={styles.priceText}>
-                {ticket.currency} {ticket.price.toFixed(2)}
-              </Text>
-            </View>
-
-            <View style={styles.flightDetailsRow}>
-              <View style={styles.locationBlock}>
-                <Text style={styles.locationCode}>({ticket.originCode})</Text>
-                <Text style={styles.locationCity}>{ticket.originCity}</Text>
-              </View>
-
-              <View style={styles.durationContainer}>
-                <View style={styles.durationLineWrapper}>
-                  <View style={styles.durationLine} />
-                  {category === 'bus' ? (
-                    <FontAwesome5 name="bus" size={14} color={COLORS.azure[950]} style={styles.durationPlaneIcon} />
-                  ) : (
-                    <Ionicons name="airplane" size={16} color={COLORS.azure[950]} style={styles.durationPlaneIcon} />
-                  )}
-                  <View style={styles.durationLine} />
+        {/* HOTEL LISTING */}
+        {isHotel &&
+          MOCK_HOTELS.map((hotel) => (
+            <TouchableOpacity
+              key={hotel.id}
+              style={styles.hotelCard}
+              activeOpacity={0.85}
+              onPress={() => navigation.navigate('HotelDetails', { hotel })}
+            >
+              <View style={styles.hotelCardHeader}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.hotelName}>{hotel.name}</Text>
+                  <View style={styles.locationRow}>
+                    <Ionicons name="location-sharp" size={14} color={COLORS.textSecondary} />
+                    <Text style={styles.hotelLocation}>{hotel.location}</Text>
+                  </View>
                 </View>
-                <Text style={styles.durationText}>{ticket.duration}</Text>
+                <View style={{ alignItems: 'flex-end' }}>
+                  <Text style={styles.priceText}>
+                    {hotel.currency} {hotel.pricePerNight.toFixed(2)}
+                  </Text>
+                  <Text style={styles.perNightText}>/ night</Text>
+                </View>
               </View>
 
-              <View style={[styles.locationBlock, styles.alignRight]}>
-                <Text style={styles.locationCode}>({ticket.destinationCode})</Text>
-                <Text style={styles.locationCity}>{ticket.destinationCity}</Text>
-              </View>
-            </View>
+              <View style={styles.hotelDetailsRow}>
+                <View style={styles.ratingBadge}>
+                  <Ionicons name="star" size={14} color="#FFB800" />
+                  <Text style={styles.ratingText}>{hotel.rating}</Text>
+                  <Text style={styles.reviewsText}>({hotel.reviewsCount})</Text>
+                </View>
 
-            <View style={styles.timeRow}>
-              <View style={styles.timeBlock}>
-                <Text style={styles.timeText}>{ticket.departureTime}</Text>
-                <Text style={styles.dateText}>{ticket.departureDate}</Text>
+                <Text style={styles.roomTypeText}>{hotel.roomType}</Text>
               </View>
 
-              <View style={[styles.timeBlock, styles.alignRight]}>
-                <Text style={styles.timeText}>{ticket.arrivalTime}</Text>
-                <Text style={styles.dateText}>{ticket.arrivalDate}</Text>
+              <View style={styles.amenitiesRow}>
+                {hotel.amenities.map((amenity, idx) => (
+                  <View key={idx} style={styles.amenityChip}>
+                    <Text style={styles.amenityText}>{amenity}</Text>
+                  </View>
+                ))}
               </View>
-            </View>
-          </TouchableOpacity>
-        ))}
+            </TouchableOpacity>
+          ))}
+
+        {/* BUS & FLIGHT LISTING */}
+        {!isHotel &&
+          (category === 'bus' ? MOCK_BUSES : MOCK_FLIGHTS).map((ticket) => (
+            <TouchableOpacity
+              key={ticket.id}
+              style={styles.flightCard}
+              onPress={() => {
+                setSelectedTicket(ticket);
+                if (category === 'bus') {
+                  setSeatModalVisible(true);
+                } else {
+                  setFareModalVisible(true);
+                }
+              }}
+            >
+              <View style={styles.cardHeader}>
+                <Text style={styles.airlineName}>{ticket.providerName}</Text>
+                <Text style={styles.priceText}>
+                  {ticket.currency} {ticket.price.toFixed(2)}
+                </Text>
+              </View>
+
+              <View style={styles.flightDetailsRow}>
+                <View style={styles.locationBlock}>
+                  <Text style={styles.locationCode}>({ticket.originCode})</Text>
+                  <Text style={styles.locationCity}>{ticket.originCity}</Text>
+                </View>
+
+                <View style={styles.durationContainer}>
+                  <View style={styles.durationLineWrapper}>
+                    <View style={styles.durationLine} />
+                    {category === 'bus' ? (
+                      <FontAwesome5 name="bus" size={14} color={COLORS.azure[950]} style={styles.durationPlaneIcon} />
+                    ) : (
+                      <Ionicons name="airplane" size={16} color={COLORS.azure[950]} style={styles.durationPlaneIcon} />
+                    )}
+                    <View style={styles.durationLine} />
+                  </View>
+                  <Text style={styles.durationText}>{ticket.duration}</Text>
+                </View>
+
+                <View style={[styles.locationBlock, styles.alignRight]}>
+                  <Text style={styles.locationCode}>({ticket.destinationCode})</Text>
+                  <Text style={styles.locationCity}>{ticket.destinationCity}</Text>
+                </View>
+              </View>
+
+              <View style={styles.timeRow}>
+                <View style={styles.timeBlock}>
+                  <Text style={styles.timeText}>{ticket.departureTime}</Text>
+                  <Text style={styles.dateText}>{ticket.departureDate}</Text>
+                </View>
+
+                <View style={[styles.timeBlock, styles.alignRight]}>
+                  <Text style={styles.timeText}>{ticket.arrivalTime}</Text>
+                  <Text style={styles.dateText}>{ticket.arrivalDate}</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))}
       </ScrollView>
 
       {/* Uçak Bilet Paketi Seçim Modalı */}
@@ -283,7 +367,6 @@ export default function SearchResultsScreen({ route, navigation }: any) {
         visible={seatModalVisible}
         onClose={() => setSeatModalVisible(false)}
         onConfirm={(seatNumber) => {
-          setSelectedSeatNumber(seatNumber);
           setSeatModalVisible(false);
           navigation.navigate('BusDetails', { ticket: selectedTicket, seatNumber });
         }}
@@ -489,5 +572,83 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: COLORS.textSecondary,
     marginTop: 2,
+  },
+  hotelCard: {
+    backgroundColor: COLORS.azure[100],
+    borderRadius: RADIUS.lg,
+    padding: SPACING.md,
+    marginBottom: SPACING.md,
+  },
+  hotelCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: SPACING.sm,
+  },
+  hotelName: {
+    ...TYPOGRAPHY.body,
+    fontWeight: '700',
+    color: COLORS.azure[950],
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    marginTop: 2,
+  },
+  hotelLocation: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.textSecondary,
+  },
+  perNightText: {
+    ...TYPOGRAPHY.caption,
+    fontSize: 10,
+    color: COLORS.textSecondary,
+  },
+  hotelDetailsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginVertical: SPACING.xs,
+  },
+  ratingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: COLORS.cardBg,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: RADIUS.sm,
+  },
+  ratingText: {
+    ...TYPOGRAPHY.caption,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+  },
+  reviewsText: {
+    ...TYPOGRAPHY.caption,
+    fontSize: 10,
+    color: COLORS.textSecondary,
+  },
+  roomTypeText: {
+    ...TYPOGRAPHY.caption,
+    fontWeight: '600',
+    color: COLORS.azure[950],
+  },
+  amenitiesRow: {
+    flexDirection: 'row',
+    gap: SPACING.xs,
+    marginTop: SPACING.sm,
+  },
+  amenityChip: {
+    backgroundColor: COLORS.azure[200],
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 3,
+    borderRadius: RADIUS.sm,
+  },
+  amenityText: {
+    ...TYPOGRAPHY.caption,
+    fontSize: 10,
+    fontWeight: '600',
+    color: COLORS.azure[950],
   },
 });
