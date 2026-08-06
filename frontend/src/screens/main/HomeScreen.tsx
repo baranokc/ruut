@@ -381,18 +381,30 @@ export default function HomeScreen({ navigation }: any) {
 
       {/* Bottom Navigation */}
       <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem}>
+        <TouchableOpacity
+          style={styles.navItem}
+          activeOpacity={0.7}
+          onPress={() => navigation.navigate('Home')}
+        >
           <Ionicons name="home" size={24} color={COLORS.cardBg} />
           <Text style={[styles.navText, styles.activeNavText]}>Home</Text>
           <View style={styles.activeDot} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.navItem}>
+        <TouchableOpacity
+          style={styles.navItem}
+          activeOpacity={0.7}
+          onPress={() => navigation.navigate('Trips')}
+        >
           <MaterialIcons name="confirmation-number" size={24} color={COLORS.azure[300]} />
           <Text style={styles.navText}>Trips</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.navItem}>
+        <TouchableOpacity
+          style={styles.navItem}
+          activeOpacity={0.7}
+          onPress={() => navigation.navigate('Profile')}
+        >
           <Ionicons name="person-outline" size={24} color={COLORS.azure[300]} />
           <Text style={styles.navText}>Profile</Text>
         </TouchableOpacity>

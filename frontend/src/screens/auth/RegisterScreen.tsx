@@ -19,6 +19,11 @@ export default function RegisterScreen({ navigation }: Props) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
+  const handleRegister = () => {
+    // İleride buraya API isteği veya validation mantığı eklenebilir
+    navigation.navigate('Login');
+  };
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       {/* Top Logo */}
@@ -77,7 +82,7 @@ export default function RegisterScreen({ navigation }: Props) {
         </View>
 
         {/* Submit Button */}
-        <TouchableOpacity style={styles.submitButton}>
+        <TouchableOpacity style={styles.submitButton} onPress={handleRegister}>
           <Text style={styles.submitButtonText}>Create an Account</Text>
         </TouchableOpacity>
 

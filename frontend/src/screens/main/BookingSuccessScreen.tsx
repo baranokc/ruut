@@ -31,7 +31,11 @@ export default function BookingSuccessScreen({ route, navigation }: any) {
   const pnrCode = ticket?.pnr || (isBus ? 'WBC193D' : 'ABC123D');
 
   const handleBackToHome = () => {
-    navigation.popToTop();
+    // Navigasyon geçmişini temizler ve Home ekranını ana sayfa yapar
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Home' }],
+    });
   };
 
   return (
