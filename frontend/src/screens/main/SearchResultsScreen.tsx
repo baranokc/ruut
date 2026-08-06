@@ -6,13 +6,14 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../constants/theme';
 import FareTypeModal from '../../components/modals/FareTypeModal';
+import SeatSelectionModal from '../../components/modals/SeatSelectionModal';
 
-export interface FlightTicket {
+export interface TicketItem {
   id: string;
-  airline: string;
+  providerName: string; // Firma veya Hava yolu adı
   price: number;
   currency: string;
   originCode: string;
@@ -26,10 +27,11 @@ export interface FlightTicket {
   duration: string;
 }
 
-const MOCK_FLIGHTS: FlightTicket[] = [
+// Uçak Mock Verileri
+const MOCK_FLIGHTS: TicketItem[] = [
   {
-    id: '1',
-    airline: 'Turkish Airlines',
+    id: 'f1',
+    providerName: 'Turkish Airlines',
     price: 89.00,
     currency: '€',
     originCode: 'SAW',
@@ -43,8 +45,8 @@ const MOCK_FLIGHTS: FlightTicket[] = [
     duration: '2h 55m',
   },
   {
-    id: '2',
-    airline: 'Pegasus Airlines',
+    id: 'f2',
+    providerName: 'Pegasus Airlines',
     price: 94.50,
     currency: '€',
     originCode: 'SAW',
@@ -57,20 +59,54 @@ const MOCK_FLIGHTS: FlightTicket[] = [
     arrivalDate: '13 Sep, 2025',
     duration: '3h 10m',
   },
+];
+
+// Otobüs Mock Verileri
+const MOCK_BUSES: TicketItem[] = [
   {
-    id: '3',
-    airline: 'SunExpress',
-    price: 124.50,
+    id: 'b1',
+    providerName: 'Metro Turizm',
+    price: 15.00,
     currency: '€',
-    originCode: 'SAW',
+    originCode: 'ESE',
     originCity: 'Istanbul',
-    destinationCode: 'MUC',
-    destinationCity: 'Munich',
-    departureTime: '10:50 PM',
+    destinationCode: 'AŞTİ',
+    destinationCity: 'Ankara',
+    departureTime: '08:30 AM',
     departureDate: '13 Sep, 2025',
-    arrivalTime: '01:45 AM',
-    arrivalDate: '14 Sep, 2025',
-    duration: '2h 55m',
+    arrivalTime: '3:00 PM',
+    arrivalDate: '13 Sep, 2025',
+    duration: '6h 30m',
+  },
+  {
+    id: 'b2',
+    providerName: 'Kamil Koç',
+    price: 20.00,
+    currency: '€',
+    originCode: 'ESE',
+    originCity: 'Istanbul',
+    destinationCode: 'AŞTİ',
+    destinationCity: 'Ankara',
+    departureTime: '10:30 AM',
+    departureDate: '13 Sep, 2025',
+    arrivalTime: '4:45 PM',
+    arrivalDate: '13 Sep, 2025',
+    duration: '6h 15m',
+  },
+  {
+    id: 'b3',
+    providerName: 'Pamukkale Turizm',
+    price: 17.50,
+    currency: '€',
+    originCode: 'ESE',
+    originCity: 'Istanbul',
+    destinationCode: 'AŞTİ',
+    destinationCity: 'Ankara',
+    departureTime: '12:00 PM',
+    departureDate: '13 Sep, 2025',
+    arrivalTime: '5:50 PM',
+    arrivalDate: '13 Sep, 2025',
+    duration: '5h 50m',
   },
 ];
 
@@ -83,12 +119,27 @@ const DATES = [
   { dayNumber: 18, dayName: 'We' },
 ];
 
-export default function SearchResultsScreen({ navigation }: any) {
+export default function SearchResultsScreen({ route, navigation }: any) {
+  const {
+    category = 'bus',
+    tripType = 'one-way',
+    fromLocation = 'ISTANBUL (ESENLER)',
+    toLocation = 'ANKARA (AŞTİ)',
+    departureDate = '13 Sep, 2025',
+  } = route?.params || {};
+
   const [selectedDate, setSelectedDate] = useState(13);
   const [fareModalVisible, setFareModalVisible] = useState(false);
+  const [seatModalVisible, setSeatModalVisible] = useState(false);
+  const [selectedSeatNumber, setSelectedSeatNumber] = useState<number | null>(null);
+  const [selectedTicket, setSelectedTicket] = useState<TicketItem | null>(null);
+
+  // Kategoriye göre mock veri seçimi
+  const ticketsList = category === 'bus' ? MOCK_BUSES : MOCK_FLIGHTS;
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.headerRow}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation?.goBack()}>
           <Ionicons name="chevron-back" size={20} color={COLORS.azure[950]} />
@@ -98,38 +149,44 @@ export default function SearchResultsScreen({ navigation }: any) {
       </View>
 
       <ScrollView contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
+        {/* Dynamic Summary Card */}
         <View style={styles.summaryCard}>
           <View style={styles.summaryRouteRow}>
-            <View>
-              <Text style={styles.summaryCodeText}>(SAW)</Text>
-              <Text style={styles.summaryCityText}>Istanbul</Text>
+            <View style={styles.locationAlign}>
+              <Text style={styles.summaryCityText} numberOfLines={1}>{fromLocation}</Text>
             </View>
 
             <View style={styles.summaryPlaneContainer}>
               <View style={styles.summaryLine} />
-              <Ionicons name="airplane" size={18} color={COLORS.cardBg} />
+              {category === 'bus' ? (
+                <FontAwesome5 name="bus" size={16} color={COLORS.cardBg} />
+              ) : (
+                <Ionicons name="airplane" size={18} color={COLORS.cardBg} />
+              )}
               <View style={styles.summaryLine} />
             </View>
 
-            <View style={styles.summaryRightAlign}>
-              <Text style={styles.summaryCodeText}>(MUC)</Text>
-              <Text style={styles.summaryCityText}>Munich</Text>
+            <View style={[styles.summaryRightAlign, styles.locationAlign]}>
+              <Text style={styles.summaryCityText} numberOfLines={1}>{toLocation}</Text>
             </View>
           </View>
 
           <View style={styles.summaryMetaRow}>
             <View>
               <Text style={styles.summaryMetaLabel}>Departure</Text>
-              <Text style={styles.summaryMetaValue}>13 September, 2025</Text>
+              <Text style={styles.summaryMetaValue}>{departureDate}</Text>
             </View>
 
             <View style={styles.summaryRightAlign}>
               <Text style={styles.summaryMetaLabel}>Type</Text>
-              <Text style={styles.summaryMetaValue}>One-way</Text>
+              <Text style={styles.summaryMetaValue}>
+                {tripType === 'one-way' ? 'One-way' : 'Round-trip'}
+              </Text>
             </View>
           </View>
         </View>
 
+        {/* Date Selector Strip */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.dateSelectorContainer}>
           {DATES.map((item) => {
             const isSelected = selectedDate === item.dayNumber;
@@ -150,60 +207,85 @@ export default function SearchResultsScreen({ navigation }: any) {
           })}
         </ScrollView>
 
-        {MOCK_FLIGHTS.map((flight) => (
+        {/* Ticket List (Bus or Plane) */}
+        {ticketsList.map((ticket) => (
           <TouchableOpacity
-            key={flight.id}
+            key={ticket.id}
             style={styles.flightCard}
-            onPress={() => setFareModalVisible(true)}
+            onPress={() => {
+              setSelectedTicket(ticket);
+              if (category === 'bus') {
+                setSeatModalVisible(true);
+              } else {
+                setFareModalVisible(true); // Uçak ise paket seçimi
+              }
+            }}
           >
             <View style={styles.cardHeader}>
-              <Text style={styles.airlineName}>{flight.airline}</Text>
+              <Text style={styles.airlineName}>{ticket.providerName}</Text>
               <Text style={styles.priceText}>
-                {flight.currency} {flight.price.toFixed(2)}
+                {ticket.currency} {ticket.price.toFixed(2)}
               </Text>
             </View>
 
             <View style={styles.flightDetailsRow}>
               <View style={styles.locationBlock}>
-                <Text style={styles.locationCode}>({flight.originCode})</Text>
-                <Text style={styles.locationCity}>{flight.originCity}</Text>
+                <Text style={styles.locationCode}>({ticket.originCode})</Text>
+                <Text style={styles.locationCity}>{ticket.originCity}</Text>
               </View>
 
               <View style={styles.durationContainer}>
                 <View style={styles.durationLineWrapper}>
                   <View style={styles.durationLine} />
-                  <Ionicons name="airplane" size={16} color={COLORS.azure[950]} style={styles.durationPlaneIcon} />
+                  {category === 'bus' ? (
+                    <FontAwesome5 name="bus" size={14} color={COLORS.azure[950]} style={styles.durationPlaneIcon} />
+                  ) : (
+                    <Ionicons name="airplane" size={16} color={COLORS.azure[950]} style={styles.durationPlaneIcon} />
+                  )}
                   <View style={styles.durationLine} />
                 </View>
-                <Text style={styles.durationText}>{flight.duration}</Text>
+                <Text style={styles.durationText}>{ticket.duration}</Text>
               </View>
 
               <View style={[styles.locationBlock, styles.alignRight]}>
-                <Text style={styles.locationCode}>({flight.destinationCode})</Text>
-                <Text style={styles.locationCity}>{flight.destinationCity}</Text>
+                <Text style={styles.locationCode}>({ticket.destinationCode})</Text>
+                <Text style={styles.locationCity}>{ticket.destinationCity}</Text>
               </View>
             </View>
 
             <View style={styles.timeRow}>
               <View style={styles.timeBlock}>
-                <Text style={styles.timeText}>{flight.departureTime}</Text>
-                <Text style={styles.dateText}>{flight.departureDate}</Text>
+                <Text style={styles.timeText}>{ticket.departureTime}</Text>
+                <Text style={styles.dateText}>{ticket.departureDate}</Text>
               </View>
 
               <View style={[styles.timeBlock, styles.alignRight]}>
-                <Text style={styles.timeText}>{flight.arrivalTime}</Text>
-                <Text style={styles.dateText}>{flight.arrivalDate}</Text>
+                <Text style={styles.timeText}>{ticket.arrivalTime}</Text>
+                <Text style={styles.dateText}>{ticket.arrivalDate}</Text>
               </View>
             </View>
           </TouchableOpacity>
         ))}
       </ScrollView>
 
+      {/* Uçak Bilet Paketi Seçim Modalı */}
       <FareTypeModal
         visible={fareModalVisible}
         onClose={() => setFareModalVisible(false)}
         onSelectFare={(fare) => {
-          console.log('Selected Fare Package:', fare);
+          setFareModalVisible(false);
+          navigation.navigate('FlightDetails', { ticket: selectedTicket, fare });
+        }}
+      />
+
+      {/* Otobüs Koltuk Seçim Modalı */}
+      <SeatSelectionModal
+        visible={seatModalVisible}
+        onClose={() => setSeatModalVisible(false)}
+        onConfirm={(seatNumber) => {
+          setSelectedSeatNumber(seatNumber);
+          setSeatModalVisible(false);
+          navigation.navigate('BusDetails', { ticket: selectedTicket, seatNumber });
         }}
       />
     </View>
@@ -255,22 +337,22 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: SPACING.md,
   },
-  summaryCodeText: {
+  locationAlign: {
+    flex: 1,
+  },
+  summaryCityText: {
     ...TYPOGRAPHY.body,
     fontWeight: '700',
     color: COLORS.cardBg,
-  },
-  summaryCityText: {
-    ...TYPOGRAPHY.caption,
-    color: COLORS.azure[200],
   },
   summaryPlaneContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+    paddingHorizontal: SPACING.xs,
   },
   summaryLine: {
-    width: 20,
+    width: 16,
     height: 1,
     backgroundColor: COLORS.azure[300],
   },

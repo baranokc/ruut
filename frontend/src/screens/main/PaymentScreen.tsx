@@ -10,15 +10,35 @@ import {
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../constants/theme';
 
-export default function PaymentScreen({ navigation }: any) {
+export default function PaymentScreen({ route, navigation }: any) {
+  // Navigation üzerinden gelen bilet ve kategori verileri
+  const { ticket, category = 'plane', seatNumber } = route?.params || {};
+
+  // Form State'leri
   const [cardholderName, setCardholderName] = useState('');
   const [cardNumber, setCardNumber] = useState('');
   const [expMonth, setExpMonth] = useState('12');
   const [expYear, setExpYear] = useState('2028');
   const [cvc, setCvc] = useState('');
+  const [selectedProvider, setSelectedProvider] = useState<string>('visa');
+
+  // Varsayılan / Dinamik Veri Seçimi
+  const isBus = category === 'bus';
+  const providerName = ticket?.providerName || ticket?.airline || (isBus ? 'Metro Turizm' : 'Turkish Airlines');
+  const priceDisplay = ticket?.price ? `${ticket.currency || '€'} ${ticket.price.toFixed(2)}` : (isBus ? '€ 15.00' : '€ 89.00');
+  const originCode = ticket?.originCode || (isBus ? 'ESE' : 'SAW');
+  const originCity = ticket?.originCity || 'Istanbul';
+  const destinationCode = ticket?.destinationCode || (isBus ? 'AŞTİ' : 'MUC');
+  const destinationCity = ticket?.destinationCity || (isBus ? 'Ankara' : 'Munich');
+  const duration = ticket?.duration || (isBus ? '6h 30m' : '2h 55m');
+  const departureTime = ticket?.departureTime || '08:30 AM';
+  const departureDate = ticket?.departureDate || '13 Sep, 2025';
+  const arrivalTime = ticket?.arrivalTime || (isBus ? '03:00 PM' : '10:25 AM');
+  const arrivalDate = ticket?.arrivalDate || '13 Sep, 2025';
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.headerRow}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation?.goBack()}>
           <Ionicons name="chevron-back" size={20} color={COLORS.azure[950]} />
@@ -28,64 +48,97 @@ export default function PaymentScreen({ navigation }: any) {
       </View>
 
       <ScrollView contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
+        {/* Dynamic Summary Ticket Card */}
         <View style={styles.flightCard}>
           <View style={styles.cardHeader}>
-            <Text style={styles.airlineName}>Turkish Airlines</Text>
-            <Text style={styles.priceText}>€ 89.00</Text>
+            <View style={styles.providerRow}>
+              <Text style={styles.airlineName}>{providerName}</Text>
+              {seatNumber && (
+                <View style={styles.seatBadge}>
+                  <Text style={styles.seatBadgeText}>Seat {seatNumber}</Text>
+                </View>
+              )}
+            </View>
+            <Text style={styles.priceText}>{priceDisplay}</Text>
           </View>
 
           <View style={styles.flightDetailsRow}>
             <View style={styles.locationBlock}>
-              <Text style={styles.locationCode}>(SAW)</Text>
-              <Text style={styles.locationCity}>Istanbul</Text>
+              <Text style={styles.locationCode}>({originCode})</Text>
+              <Text style={styles.locationCity}>{originCity}</Text>
             </View>
 
             <View style={styles.durationContainer}>
               <View style={styles.durationLineWrapper}>
                 <View style={styles.durationLine} />
-                <Ionicons name="airplane" size={16} color={COLORS.azure[950]} style={styles.durationPlaneIcon} />
+                {isBus ? (
+                  <FontAwesome5 name="bus" size={14} color={COLORS.azure[950]} style={styles.durationPlaneIcon} />
+                ) : (
+                  <Ionicons name="airplane" size={16} color={COLORS.azure[950]} style={styles.durationPlaneIcon} />
+                )}
                 <View style={styles.durationLine} />
               </View>
-              <Text style={styles.durationText}>2h 55m</Text>
+              <Text style={styles.durationText}>{duration}</Text>
             </View>
 
             <View style={[styles.locationBlock, styles.alignRight]}>
-              <Text style={styles.locationCode}>(MUC)</Text>
-              <Text style={styles.locationCity}>Munich</Text>
+              <Text style={styles.locationCode}>({destinationCode})</Text>
+              <Text style={styles.locationCity}>{destinationCity}</Text>
             </View>
           </View>
 
           <View style={styles.timeRow}>
             <View style={styles.timeBlock}>
-              <Text style={styles.timeText}>08:30 AM</Text>
-              <Text style={styles.dateText}>13 Sep, 2025</Text>
+              <Text style={styles.timeText}>{departureTime}</Text>
+              <Text style={styles.dateText}>{departureDate}</Text>
             </View>
 
             <View style={[styles.timeBlock, styles.alignRight]}>
-              <Text style={styles.timeText}>10:25 AM</Text>
-              <Text style={styles.dateText}>13 Sep, 2025</Text>
+              <Text style={styles.timeText}>{arrivalTime}</Text>
+              <Text style={styles.dateText}>{arrivalDate}</Text>
             </View>
           </View>
         </View>
 
+        {/* Payment Provider Badges */}
         <View style={styles.paymentMethodsRow}>
-          <View style={styles.paymentBadge}>
+          <TouchableOpacity
+            style={[styles.paymentBadge, selectedProvider === 'paypal' && styles.selectedBadge]}
+            onPress={() => setSelectedProvider('paypal')}
+          >
             <FontAwesome5 name="cc-paypal" size={22} color="#003087" />
-          </View>
-          <View style={styles.paymentBadge}>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.paymentBadge, selectedProvider === 'visa' && styles.selectedBadge]}
+            onPress={() => setSelectedProvider('visa')}
+          >
             <FontAwesome5 name="cc-visa" size={22} color="#1A1F71" />
-          </View>
-          <View style={styles.paymentBadge}>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.paymentBadge, selectedProvider === 'mastercard' && styles.selectedBadge]}
+            onPress={() => setSelectedProvider('mastercard')}
+          >
             <FontAwesome5 name="cc-mastercard" size={22} color="#EB001B" />
-          </View>
-          <View style={styles.paymentBadge}>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.paymentBadge, selectedProvider === 'maestro' && styles.selectedBadge]}
+            onPress={() => setSelectedProvider('maestro')}
+          >
             <Ionicons name="card" size={20} color="#006FCF" />
-          </View>
-          <View style={styles.paymentBadge}>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.paymentBadge, selectedProvider === 'amex' && styles.selectedBadge]}
+            onPress={() => setSelectedProvider('amex')}
+          >
             <FontAwesome5 name="cc-amex" size={22} color="#016FD0" />
-          </View>
+          </TouchableOpacity>
         </View>
 
+        {/* Form Inputs */}
         <View style={styles.formContainer}>
           <Text style={styles.label}>Cardholder Name</Text>
           <View style={styles.inputCard}>
@@ -101,7 +154,7 @@ export default function PaymentScreen({ navigation }: any) {
 
           <Text style={styles.label}>Card Number</Text>
           <View style={styles.inputCard}>
-            <Ionicons name="person-outline" size={18} color={COLORS.azure[950]} style={styles.inputIcon} />
+            <Ionicons name="card-outline" size={18} color={COLORS.azure[950]} style={styles.inputIcon} />
             <TextInput
               style={styles.textInput}
               placeholder="**** **** **** 1234"
@@ -145,10 +198,12 @@ export default function PaymentScreen({ navigation }: any) {
             </View>
           </View>
 
-          <TouchableOpacity style={styles.continueButton} onPress={() => navigation.navigate('BookingSuccess')}>
-        <Text style={styles.continueButtonText}>Continue to Payment</Text>
-        </TouchableOpacity>
-
+          <TouchableOpacity
+            style={styles.continueButton}
+            onPress={() => navigation.navigate('BookingSuccess', { category, ticket })}
+          >
+            <Text style={styles.continueButtonText}>Continue to Payment</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </View>
@@ -200,8 +255,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: SPACING.md,
   },
+  providerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+  },
   airlineName: {
     ...TYPOGRAPHY.body,
+    fontWeight: '700',
+    color: COLORS.azure[950],
+  },
+  seatBadge: {
+    backgroundColor: COLORS.azure[200],
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: RADIUS.sm,
+  },
+  seatBadgeText: {
+    ...TYPOGRAPHY.caption,
+    fontSize: 10,
     fontWeight: '700',
     color: COLORS.azure[950],
   },
@@ -283,6 +355,10 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.md,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  selectedBadge: {
+    borderWidth: 1.5,
+    borderColor: COLORS.azure[950],
   },
   formContainer: {
     marginTop: SPACING.xs,

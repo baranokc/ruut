@@ -21,6 +21,7 @@ interface OfferItem {
   title: string;
   subtitle: string;
   discount: string;
+  iconType: 'plane' | 'bus';
 }
 
 const OFFERS: OfferItem[] = [
@@ -29,17 +30,19 @@ const OFFERS: OfferItem[] = [
     title: 'Fly More, Pay Less',
     subtitle: 'Get up to 25% off on your first international flight booking.',
     discount: '25% OFF',
+    iconType: 'plane',
   },
   {
     id: '2',
     title: 'Save Travel Costs',
     subtitle: 'Travel while maintaining your budget with exclusive deals.',
     discount: '15% OFF',
+    iconType: 'bus',
   },
 ];
 
 export default function HomeScreen({ navigation }: any) {
-  const [selectedCategory, setSelectedCategory] = useState<CategoryType>('plane');
+  const [selectedCategory, setSelectedCategory] = useState<CategoryType>('bus');
   const [tripType, setTripType] = useState<TripType>('round-trip');
   const [fromLocation, setFromLocation] = useState('');
   const [toLocation, setToLocation] = useState('');
@@ -50,6 +53,36 @@ export default function HomeScreen({ navigation }: any) {
   const [returnDate, setReturnDate] = useState('');
   const [dateModalVisible, setDateModalVisible] = useState(false);
   const [activeDateType, setActiveDateType] = useState<'departure' | 'return'>('departure');
+
+  // Kategoriye göre ikon seçimi
+  const renderFromIcon = () => {
+    switch (selectedCategory) {
+      case 'bus':
+        return <FontAwesome5 name="bus" size={18} color={COLORS.azure[950]} />;
+      case 'hotel':
+        return <FontAwesome5 name="bed" size={18} color={COLORS.azure[950]} />;
+      case 'car':
+        return <Ionicons name="car" size={20} color={COLORS.azure[950]} />;
+      case 'plane':
+      default:
+        return <Ionicons name="airplane-outline" size={20} color={COLORS.azure[950]} />;
+    }
+  };
+
+  // Kategoriye göre From placeholder metni
+  const getFromPlaceholder = () => {
+    switch (selectedCategory) {
+      case 'bus':
+        return 'Enter origin city or bus station';
+      case 'hotel':
+        return 'Enter destination or hotel name';
+      case 'car':
+        return 'Enter pick-up location';
+      case 'plane':
+      default:
+        return 'Enter origin city or airport';
+    }
+  };
 
   const openSearchModal = (type: 'from' | 'to') => {
     setActiveInputType(type);
@@ -84,7 +117,14 @@ export default function HomeScreen({ navigation }: any) {
   };
 
   const handleSearch = () => {
-    navigation.navigate('SearchResults');
+    navigation.navigate('SearchResults', {
+      category: selectedCategory,
+      tripType: tripType,
+      fromLocation: fromLocation || (selectedCategory === 'bus' ? 'ISTANBUL (ESENLER)' : 'ISTANBUL (SAW)'),
+      toLocation: toLocation || (selectedCategory === 'bus' ? 'ANKARA (AŞTİ)' : 'MUNICH (MUC)'),
+      departureDate: departureDate || '13 Sep, 2025',
+      returnDate: returnDate,
+    });
   };
 
   return (
@@ -94,6 +134,7 @@ export default function HomeScreen({ navigation }: any) {
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
+        {/* Header Section */}
         <View style={styles.headerContainer}>
           <View style={styles.userInfo}>
             <Image
@@ -110,7 +151,9 @@ export default function HomeScreen({ navigation }: any) {
           </TouchableOpacity>
         </View>
 
+        {/* Search Main Card */}
         <View style={styles.searchCard}>
+          {/* Category Selector */}
           <View style={styles.categoryContainer}>
             <TouchableOpacity
               style={[styles.categoryTab, selectedCategory === 'plane' && styles.activeCategoryTab]}
@@ -189,36 +232,45 @@ export default function HomeScreen({ navigation }: any) {
             </TouchableOpacity>
           </View>
 
+          {/* Location Inputs (From / To) */}
           <View style={styles.inputsWrapper}>
+            {/* From Input */}
             <TouchableOpacity style={styles.inputCard} onPress={() => openSearchModal('from')}>
-              <View style={styles.iconCircle}>
-                <Ionicons name="airplane-outline" size={20} color={COLORS.azure[950]} />
-              </View>
+              <View style={styles.iconCircle}>{renderFromIcon()}</View>
               <View style={styles.inputTextContainer}>
                 <Text style={styles.inputLabel}>From</Text>
-                <Text style={fromLocation ? styles.selectedText : styles.placeholderText}>
-                  {fromLocation || 'Enter origin city or airport'}
+                <Text
+                  style={fromLocation ? styles.selectedText : styles.placeholderText}
+                  numberOfLines={1}
+                >
+                  {fromLocation || getFromPlaceholder()}
                 </Text>
               </View>
             </TouchableOpacity>
 
+            {/* Swap Button */}
             <TouchableOpacity style={styles.swapButton} onPress={handleSwapLocations}>
               <Ionicons name="swap-vertical" size={18} color={COLORS.azure[950]} />
             </TouchableOpacity>
 
+            {/* To Input */}
             <TouchableOpacity style={styles.inputCard} onPress={() => openSearchModal('to')}>
               <View style={styles.iconCircle}>
                 <Ionicons name="location-sharp" size={20} color={COLORS.azure[950]} />
               </View>
               <View style={styles.inputTextContainer}>
                 <Text style={styles.inputLabel}>To</Text>
-                <Text style={toLocation ? styles.selectedText : styles.placeholderText}>
+                <Text
+                  style={toLocation ? styles.selectedText : styles.placeholderText}
+                  numberOfLines={1}
+                >
                   {toLocation || 'Where do you want to go?'}
                 </Text>
               </View>
             </TouchableOpacity>
           </View>
 
+          {/* Radio Row */}
           <View style={styles.radioRow}>
             <TouchableOpacity
               style={[styles.radioButton, tripType === 'one-way' && styles.activeRadioButton]}
@@ -245,22 +297,45 @@ export default function HomeScreen({ navigation }: any) {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.datesRow}>
-            <TouchableOpacity style={styles.dateCard} onPress={() => openDatePicker('departure')}>
+          {/* Dynamic Dates Section (One-way vs Round-trip) */}
+          {tripType === 'one-way' ? (
+            <TouchableOpacity
+              style={styles.fullDateCard}
+              onPress={() => openDatePicker('departure')}
+              activeOpacity={0.8}
+            >
               <Text style={styles.inputLabel}>Departure</Text>
               <Text style={departureDate ? styles.selectedText : styles.dateValueText}>
                 {departureDate || 'Select Date'}
               </Text>
             </TouchableOpacity>
+          ) : (
+            <View style={styles.datesRow}>
+              <TouchableOpacity
+                style={styles.dateCard}
+                onPress={() => openDatePicker('departure')}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.inputLabel}>Departure</Text>
+                <Text style={departureDate ? styles.selectedText : styles.dateValueText}>
+                  {departureDate || 'Select Date'}
+                </Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity style={styles.dateCard} onPress={() => openDatePicker('return')}>
-              <Text style={styles.inputLabel}>Return</Text>
-              <Text style={returnDate ? styles.selectedText : styles.dateValueText}>
-                {returnDate || 'Select Date'}
-              </Text>
-            </TouchableOpacity>
-          </View>
+              <TouchableOpacity
+                style={styles.dateCard}
+                onPress={() => openDatePicker('return')}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.inputLabel}>Return</Text>
+                <Text style={returnDate ? styles.selectedText : styles.dateValueText}>
+                  {returnDate || 'Select Date'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
+          {/* Passengers Selector */}
           <TouchableOpacity style={styles.passengersCard}>
             <View style={styles.passengersLeft}>
               <View style={styles.iconCircleSmall}>
@@ -271,11 +346,13 @@ export default function HomeScreen({ navigation }: any) {
             <Ionicons name="chevron-down" size={20} color={COLORS.azure[950]} />
           </TouchableOpacity>
 
+          {/* Search Action Button */}
           <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
             <Text style={styles.searchButtonText}>Search</Text>
           </TouchableOpacity>
         </View>
 
+        {/* Special Offers Horizontal List */}
         <View style={styles.offersSection}>
           <Text style={styles.offersTitle}>Special Offers</Text>
           <FlatList
@@ -290,7 +367,11 @@ export default function HomeScreen({ navigation }: any) {
                   <Text style={styles.offerCardSubtitle}>{item.subtitle}</Text>
                 </View>
                 <View style={styles.offerIconBadge}>
-                  <Ionicons name="airplane" size={22} color={COLORS.cardBg} />
+                  {item.iconType === 'bus' ? (
+                    <FontAwesome5 name="bus" size={18} color={COLORS.cardBg} />
+                  ) : (
+                    <Ionicons name="airplane" size={22} color={COLORS.cardBg} />
+                  )}
                 </View>
               </View>
             )}
@@ -298,6 +379,7 @@ export default function HomeScreen({ navigation }: any) {
         </View>
       </ScrollView>
 
+      {/* Bottom Navigation */}
       <View style={styles.bottomNav}>
         <TouchableOpacity style={styles.navItem}>
           <Ionicons name="home" size={24} color={COLORS.cardBg} />
@@ -316,11 +398,14 @@ export default function HomeScreen({ navigation }: any) {
         </TouchableOpacity>
       </View>
 
+      {/* Modallar */}
       <LocationSearchModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         onSelectLocation={handleSelectLocation}
-        placeholder={activeInputType === 'from' ? 'Enter origin city or airport' : 'Where do you want to go?'}
+        placeholder={
+          activeInputType === 'from' ? getFromPlaceholder() : 'Where do you want to go?'
+        }
       />
 
       <DatePickerModal
@@ -499,6 +584,14 @@ const styles = StyleSheet.create({
     ...TYPOGRAPHY.body2,
     color: COLORS.textPrimary,
     fontWeight: '600',
+  },
+  fullDateCard: {
+    backgroundColor: COLORS.cardBg,
+    borderRadius: RADIUS.md,
+    padding: SPACING.md,
+    height: 60,
+    justifyContent: 'center',
+    marginBottom: SPACING.md,
   },
   datesRow: {
     flexDirection: 'row',
